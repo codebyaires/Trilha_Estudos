@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trabalho Avaliativo — Sistema EAD | SENAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        senai: {
+                            red:         '#C0392B',
+                            blue:        '#34679A',
+                            'blue-dark': '#2C5A85',
+                            'blue-light':'#EBF2FB',
+                            orange:      '#E67E22',
+                            green:       '#27AE60',
+                            yellow:      '#F1C40F',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+
+        .section-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 16px rgba(52,103,154,.06);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #fff;
+            background: linear-gradient(135deg, #34679A 0%, #2C5A85 100%);
+        }
+        .section-header .icon-circle {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 900;
+            flex-shrink: 0;
+        }
+        .section-body { padding: 24px; }
+
+        .rf-block {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .rf-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .rf-body {
+            padding: 14px 20px;
+        }
+        .rf-body ul { list-style: none; padding: 0; margin: 0; }
+        .rf-body li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 5px 0;
+            font-size: 0.83rem;
+            color: #374151;
+            border-bottom: 1px dashed #f0f0f0;
+        }
+        .rf-body li:last-child { border-bottom: none; }
+        .rf-body li::before {
+            content: "›";
+            color: #34679A;
+            font-weight: 900;
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: -1px;
+        }
+
+        .badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; font-weight: 800;
+            padding: 3px 9px; border-radius: 999px;
+            letter-spacing: .04em; text-transform: uppercase;
+        }
+
+        code {
+            background: #EBF2FB;
+            color: #2C5A85;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-weight: 600;
+        }
+
+        .folder-pre {
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.8rem;
+            line-height: 1.85;
+            padding: 20px 24px;
+            overflow-x: auto;
+            color: #e2e8f0;
+        }
+
+        .info-box {
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.83rem;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .ficha-table td { padding: 9px 16px; font-size: 0.83rem; }
+        .ficha-table tr { border-bottom: 1px solid #f1f5f9; }
+        .ficha-table tr:last-child { border-bottom: none; }
+        .ficha-label { color: #6b7280; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+
+        .eval-row td { padding: 10px 16px; font-size: 0.83rem; }
+        .eval-pts { font-weight: 800; font-size: 0.95rem; color: #34679A; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { font-size: 10pt; }
+            .page-break { page-break-before: always; }
+            .section-card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- ═══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<header>
+    <!-- Topo SENAI -->
+    <div style="background: linear-gradient(135deg, #1a3a5c 0%, #34679A 60%, #2C5A85 100%)">
+        <div class="max-w-5xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+                     style="background:rgba(255,255,255,.12)"></div>
+                <div>
+                    <p class="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-0.5">Serviço Nacional de Aprendizagem Industrial</p>
+                    <h1 class="text-white font-extrabold text-2xl leading-tight">SENAI — Desenvolvimento Web</h1>
+                    <p class="text-blue-300 text-sm mt-0.5">Trabalho Avaliativo · Aula 6</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <div class="text-center bg-white/10 rounded-xl px-5 py-3 backdrop-blur-sm">
+                    <p class="text-blue-200 text-xs uppercase tracking-wide font-semibold">Valor</p>
+                    <p class="text-white font-extrabold text-2xl">10</p>
+                    <p class="text-blue-200 text-xs">pontos</p>
+                </div>
+                <div class="text-center bg-white/10 rounded-xl px-5 py-3 backdrop-blur-sm">
+                    <p class="text-blue-200 text-xs uppercase tracking-wide font-semibold">Tipo</p>
+                    <p class="text-white font-extrabold text-lg leading-tight mt-0.5">Individual</p>
+                    <p class="text-blue-200 text-xs">entrega .zip</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Faixa vermelha -->
+    <div class="bg-senai-red text-white text-center text-xs py-2 tracking-[.18em] font-bold uppercase">
+        Sistema EAD — Ensino a Distância
+    </div>
+</header>
+
+<div class="max-w-5xl mx-auto px-4 md:px-6 py-8">
+
+    <!-- AVISO DE NÍVEL -->
+    <div class="section-card mb-8">
+        <div style="background:linear-gradient(135deg,#EBF2FB,#dbeafe)" class="p-4 flex gap-3 items-start">
+            <div class="w-10 h-10 bg-senai-blue rounded-xl flex items-center justify-center text-white text-lg flex-shrink-0"></div>
+            <div>
+                <p class="font-bold text-senai-blue text-sm mb-1">Este trabalho usa o que você já aprendeu!</p>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Use <code>mysqli</code> igual à aula 5. O mesmo padrão de <code>conexao.php</code>, <code>logado.php</code>, <code>menu.php</code>
+                    e CRUD com <code>?editar=ID</code> e <code>?excluir=ID</code>. A diferença é só o contexto: agora o sistema é uma
+                    <strong>plataforma de cursos online</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ FICHA ════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="icon-circle">ID</div>
+            Identificação do Trabalho
+        </div>
+        <table class="w-full ficha-table">
+            <tbody>
+                <tr>
+                    <td class="ficha-label bg-gray-50 w-36">Disciplina</td>
+                    <td>Desenvolvimento Web</td>
+                    <td class="ficha-label bg-gray-50 w-28">Modalidade</td>
+                    <td>Individual</td>
+                </tr>
+                <tr>
+                    <td class="ficha-label bg-gray-50">Tecnologias</td>
+                    <td>
+                        <span class="badge bg-blue-100 text-blue-700">PHP</span>
+                        <span class="badge bg-orange-100 text-orange-700 ml-1">MySQL</span>
+                        <span class="badge bg-purple-100 text-purple-700 ml-1">mysqli</span>
+                        <span class="badge bg-pink-100 text-pink-700 ml-1">HTML</span>
+                        <span class="badge bg-teal-100 text-teal-700 ml-1">Tailwind CSS</span>
+                    </td>
+                    <td class="ficha-label bg-gray-50">Valor</td>
+                    <td class="font-extrabold text-senai-green text-base">10 pontos</td>
+                </tr>
+                <tr>
+                    <td class="ficha-label bg-gray-50">Banco de Dados</td>
+                    <td><code>ead_senai</code></td>
+                    <td class="ficha-label bg-gray-50">Entrega</td>
+                    <td>Pasta <code>.zip</code> com todos os arquivos</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 1 ════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="icon-circle">1</div>
+            O que é o Sistema
+        </div>
+        <div class="section-body">
+            <p class="text-sm text-gray-600 mb-5">Você vai criar uma plataforma de <strong>Ensino a Distância (EAD)</strong> com dois perfis de usuário:</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                <div class="rounded-xl border-2 border-senai-blue/20 bg-senai-blue-light p-4 text-center">
+                    <div class="w-12 h-12 bg-senai-blue/10 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"></div>
+                    <p class="font-bold text-sm text-senai-blue mb-2">Aluno</p>
+                    <p class="text-xs text-gray-500 leading-relaxed">Se cadastra, faz login, se inscreve em cursos e navega pelos módulos e aulas.</p>
+                </div>
+                <div class="rounded-xl border-2 border-orange-200 bg-orange-50 p-4 text-center">
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">📚</div>
+                    <p class="font-bold text-sm text-senai-orange mb-2">Cursos</p>
+                    <p class="text-xs text-gray-500 leading-relaxed">Cada curso tem módulos, e cada módulo tem aulas cadastradas pelo admin.</p>
+                </div>
+                <div class="rounded-xl border-2 border-red-200 bg-red-50 p-4 text-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"></div>
+                    <p class="font-bold text-sm text-senai-red mb-2">Admin</p>
+                    <p class="text-xs text-gray-500 leading-relaxed">Cadastra, edita e exclui cursos, módulos e aulas. Mesmo CRUD da aula 5.</p>
+                </div>
+            </div>
+            <div class="info-box bg-orange-50 border border-orange-200">
+                <span class="text-orange-500 text-base flex-shrink-0 mt-0.5"></span>
+                <p class="text-gray-700">
+                    <strong>Fluxo do aluno:</strong>
+                    Tela inicial → Cadastro → Login → Ver cursos → Se inscrever → Acessar módulos → Ver aulas
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 2 ════════════════════════════════════ -->
+    <div class="section-card page-break">
+        <div class="section-header">
+            <div class="icon-circle">2</div>
+            O que o Sistema Precisa Ter
+        </div>
+        <div class="section-body">
+
+            <!-- RF01 -->
+            <div class="rf-block">
+                <div class="rf-header">
+                    <span class="badge bg-senai-blue text-white">RF01</span>
+                    <span class="text-gray-800">Login e Logout</span>
+                    <span class="ml-auto text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Igual à aula 5</span>
+                </div>
+                <div class="rf-body">
+                    <ul>
+                        <li>Tela de login com e-mail e senha (copie o <code>login.php</code> da aula 5).</li>
+                        <li>Buscar usuário com <code>mysqli_query</code> e verificar com <code>password_verify()</code>.</li>
+                        <li>Salvar ID, nome e tipo do usuário em <code>$_SESSION</code>.</li>
+                        <li>Logout destrói a sessão e redireciona para a tela inicial.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RF02 -->
+            <div class="rf-block">
+                <div class="rf-header">
+                    <span class="badge bg-senai-green text-white">RF02</span>
+                    <span class="text-gray-800">Cadastro de Aluno</span>
+                </div>
+                <div class="rf-body">
+                    <ul>
+                        <li>Formulário público (sem login) com: nome, e-mail e senha.</li>
+                        <li>Verificar se o e-mail já existe: <code>SELECT</code> + <code>mysqli_num_rows</code>.</li>
+                        <li>Salvar senha com <code>password_hash()</code> — igual ao que já foi feito.</li>
+                        <li>Após cadastro, redirecionar para o login.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RF03 -->
+            <div class="rf-block">
+                <div class="rf-header">
+                    <span class="badge bg-senai-orange text-white">RF03</span>
+                    <span class="text-gray-800">Catálogo de Cursos e Inscrição</span>
+                </div>
+                <div class="rf-body">
+                    <ul>
+                        <li>Listar todos os cursos: <code>SELECT * FROM cursos</code>.</li>
+                        <li>Verificar se o aluno já está inscrito (consulta na tabela <code>inscricoes</code>).</li>
+                        <li>Se não inscrito: botão <strong>"Inscrever-se"</strong> que insere na tabela <code>inscricoes</code>.</li>
+                        <li>Se inscrito: botão <strong>"Acessar"</strong> que leva para os módulos do curso.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RF04 -->
+            <div class="rf-block">
+                <div class="rf-header">
+                    <span class="badge bg-purple-600 text-white">RF04</span>
+                    <span class="text-gray-800">Meus Cursos — Ver Módulos e Aulas</span>
+                </div>
+                <div class="rf-body">
+                    <ul>
+                        <li>Página que lista só os cursos em que o aluno está inscrito.</li>
+                        <li>Em <code>curso.php?id=N</code> listar os módulos: <code>SELECT * FROM modulos WHERE curso_id = $id</code>.</li>
+                        <li>Em <code>aula.php?id=N</code> mostrar o player do vídeo e os dados da aula.</li>
+                        <li>Cada aula exibe título, duração e o iframe/link do vídeo.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- RF05 -->
+            <div class="rf-block">
+                <div class="rf-header">
+                    <span class="badge bg-senai-red text-white">RF05</span>
+                    <span class="text-gray-800">Painel Admin — CRUD de Cursos, Módulos e Aulas</span>
+                    <span class="ml-auto text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Igual ao CRUD da aula 5</span>
+                </div>
+                <div class="rf-body">
+                    <ul>
+                        <li>Acesso restrito: <code>$_SESSION["usuario_tipo"] == 'admin'</code>.</li>
+                        <li><strong>Cursos:</strong> <code>admin/cursos.php</code> lista · <code>admin/curso_form.php</code> cadastra/edita · <code>admin/curso_delete.php</code> exclui.</li>
+                        <li><strong>Módulos:</strong> <code>admin/modulos.php</code> lista · <code>admin/modulo_form.php</code> cadastra/edita · <code>admin/modulo_delete.php</code> exclui.</li>
+                        <li><strong>Aulas:</strong> <code>admin/aulas.php</code> lista · <code>admin/aula_form.php</code> cadastra/edita · <code>admin/aula_delete.php</code> exclui.</li>
+                        <li>Os forms recebem <code>?id=N</code> para editar ou ficam vazios para cadastrar — mesma lógica da aula 5.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bônus -->
+            <div class="info-box bg-green-50 border border-green-200 mt-2">
+                <span class="text-green-500 text-lg flex-shrink-0"></span>
+                <p><strong class="text-green-700">Bônus (não obrigatório):</strong>
+                    <span class="text-gray-600">Upload de imagem de capa para cursos · Marcar aula como concluída · Barra de progresso</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 3 ════════════════════════════════════ -->
+    <div class="section-card page-break">
+        <div class="section-header">
+            <div class="icon-circle">3</div>
+            Estrutura de Pastas
+        </div>
+        <div class="section-body">
+            <p class="text-sm text-gray-500 mb-4">Mesmo padrão da aula 5 — só mudam os nomes dos arquivos e tabelas.</p>
+
+            <div class="rounded-xl overflow-hidden border border-gray-800 mb-4">
+                <!-- Barra do terminal -->
+                <div class="bg-gray-800 px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="flex gap-1.5">
+                            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                            <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
+                            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                        </div>
+                        <span class="text-gray-400 text-xs ml-2 font-mono">Estrutura de Pastas</span>
+                    </div>
+                    <span class="bg-senai-blue text-white text-xs px-2.5 py-1 rounded-md font-bold">aula6/projeto/</span>
+                </div>
+                <!-- Código -->
+                <div class="bg-gray-950">
+                    <pre class="folder-pre"><span class="text-gray-500">projeto/</span>
+├── <span class="text-yellow-300">conexao.php</span>              <span class="text-gray-500">← Conexão com o banco (mysqli) — copie da aula 5 e ajuste</span>
+├── <span class="text-yellow-300">logado.php</span>               <span class="text-gray-500">← Verifica sessão ativa — copie da aula 5 (sem alteração)</span>
+├── <span class="text-green-400">index.php</span>                <span class="text-gray-500">← Tela inicial (apresentação + links)</span>
+├── <span class="text-green-400">login.php</span>                <span class="text-gray-500">← Formulário e processamento do login</span>
+├── <span class="text-yellow-300">logout.php</span>               <span class="text-gray-500">← Encerra sessão e redireciona</span>
+├── <span class="text-green-400">cadastro.php</span>             <span class="text-gray-500">← Cadastro do aluno</span>
+├── <span class="text-green-400">cursos.php</span>               <span class="text-gray-500">← Catálogo de cursos disponíveis</span>
+├── <span class="text-yellow-300">inscricao.php</span>            <span class="text-gray-500">← Processa inscrição em um curso</span>
+├── <span class="text-green-400">meus_cursos.php</span>          <span class="text-gray-500">← Lista cursos do aluno logado</span>
+├── <span class="text-green-400">curso.php</span>                <span class="text-gray-500">← Módulos do curso selecionado  (?id=N)</span>
+├── <span class="text-green-400">aula.php</span>                 <span class="text-gray-500">← Player da aula + marcar concluído  (?id=N)</span>
+│
+├── <span class="text-gray-400">includes/</span>                <span class="text-gray-500">← Componentes reutilizáveis</span>
+│   ├── <span class="text-pink-300">header.php</span>           <span class="text-gray-500">← &lt;head&gt; e abertura do &lt;body&gt;</span>
+│   ├── <span class="text-pink-300">menu.php</span>             <span class="text-gray-500">← Barra de navegação do aluno</span>
+│   └── <span class="text-pink-300">footer.php</span>           <span class="text-gray-500">← Fechamento da página</span>
+│
+├── <span class="text-gray-400">admin/</span>                   <span class="text-gray-500">← Painel do administrador</span>
+│   ├── <span class="text-red-400">index.php</span>            <span class="text-gray-500">← Dashboard (totais do sistema)</span>
+│   ├── <span class="text-red-400">cursos.php</span>           <span class="text-gray-500">← Listar todos os cursos</span>
+│   ├── <span class="text-red-400">curso_form.php</span>       <span class="text-gray-500">← Cadastrar / Editar curso</span>
+│   ├── <span class="text-red-400">curso_delete.php</span>     <span class="text-gray-500">← Excluir curso</span>
+│   ├── <span class="text-red-400">modulos.php</span>          <span class="text-gray-500">← Listar módulos de um curso</span>
+│   ├── <span class="text-red-400">modulo_form.php</span>      <span class="text-gray-500">← Cadastrar / Editar módulo</span>
+│   ├── <span class="text-red-400">modulo_delete.php</span>    <span class="text-gray-500">← Excluir módulo</span>
+│   ├── <span class="text-red-400">aulas.php</span>            <span class="text-gray-500">← Listar aulas de um módulo</span>
+│   ├── <span class="text-red-400">aula_form.php</span>        <span class="text-gray-500">← Cadastrar / Editar aula</span>
+│   ├── <span class="text-red-400">aula_delete.php</span>      <span class="text-gray-500">← Excluir aula</span>
+│   └── <span class="text-gray-400">includes/</span>
+│       └── <span class="text-pink-300">menu_admin.php</span>   <span class="text-gray-500">← Navegação do painel admin</span>
+│
+├── <span class="text-gray-400">css/</span>
+│   └── <span class="text-pink-400">style.css</span>            <span class="text-gray-500">← Estilo global da aplicação</span>
+│
+├── <span class="text-gray-400">uploads/</span>
+│   └── <span class="text-gray-400">capas/</span>               <span class="text-gray-500">← Imagens de capa dos cursos</span>
+│
+└── <span class="text-gray-400">sql/</span>
+    └── <span class="text-gray-400">banco.sql</span>             <span class="text-gray-500">← Script de criação e população do banco</span></pre>
+                </div>
+            </div>
+
+            <div class="info-box bg-blue-50 border border-blue-200">
+                <span class="text-blue-400 text-base flex-shrink-0 mt-0.5"></span>
+                <div class="text-gray-700 text-sm space-y-1">
+                    <p><strong>Dica — o que copiar da aula 5:</strong> <code>conexao.php</code> (ajuste só o nome do banco para <code>ead_senai</code>) e <code>login.php</code> (ajuste a tabela para <code>usuarios</code> e adicione <code>$_SESSION["usuario_tipo"]</code>).</p>
+                    <p><span class="text-gray-500">Amarelo</span> = arquivos de processamento (sem tela própria) &nbsp;·&nbsp; <span class="text-green-600">Verde</span> = telas do aluno &nbsp;·&nbsp; <span class="text-red-500">Vermelho</span> = área admin &nbsp;·&nbsp; <span class="text-pink-500">Rosa</span> = includes reutilizáveis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 4 ════════════════════════════════════ -->
+    <div class="section-card page-break">
+        <div class="section-header">
+            <div class="icon-circle">4</div>
+            Banco de Dados
+        </div>
+        <div class="section-body">
+            <p class="text-sm text-gray-500 mb-4">
+                Importe <code>projeto/sql/banco.sql</code> no <strong>phpMyAdmin</strong>. As tabelas são simples e diretas:
+            </p>
+            <div class="rounded-xl overflow-hidden border border-gray-200 mb-4">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #34679A, #2C5A85)">
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">Tabela</th>
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">Campos principais</th>
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">Para que serve</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-100">
+                            <td class="px-4 py-3 font-mono font-bold text-senai-blue text-xs">usuarios</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">id, nome, email, senha, tipo</td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">Alunos e admins. Campo <code>tipo</code>: <code>'aluno'</code> ou <code>'admin'</code></td>
+                        </tr>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <td class="px-4 py-3 font-mono font-bold text-senai-blue text-xs">cursos</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">id, titulo, descricao, capa</td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">Catálogo de cursos disponíveis</td>
+                        </tr>
+                        <tr class="border-b border-gray-100">
+                            <td class="px-4 py-3 font-mono font-bold text-senai-blue text-xs">modulos</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">id, curso_id, titulo, ordem</td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">Módulos (capítulos) de cada curso</td>
+                        </tr>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <td class="px-4 py-3 font-mono font-bold text-senai-blue text-xs">aulas</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">id, modulo_id, titulo, video_url, duracao</td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">Aulas de cada módulo</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 font-mono font-bold text-senai-blue text-xs">inscricoes</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">id, usuario_id, curso_id</td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">Quais alunos estão inscritos em quais cursos</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="info-box bg-yellow-50 border border-yellow-200">
+                <span class="text-yellow-500 text-base flex-shrink-0 mt-0.5"></span>
+                <p class="text-gray-700">
+                    <strong>Admin padrão após importar o banco:</strong>
+                    E-mail: <code>admin@ead.com</code> &nbsp;·&nbsp; Senha: <code>admin123</code>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 5 ════════════════════════════════════ -->
+    <div class="section-card page-break">
+        <div class="section-header">
+            <div class="icon-circle">5</div>
+            Telas do Sistema
+        </div>
+        <div class="section-body">
+            <p class="text-sm text-gray-500 mb-4">
+                Veja os modelos no arquivo
+                <a href="wireframes.html" class="text-senai-blue underline font-semibold">wireframes.html</a>
+                e as telas prontas em HTML na pasta
+                <a href="telas/index.html" class="text-senai-blue underline font-semibold">telas/</a>.
+            </p>
+            <div class="rounded-xl overflow-hidden border border-gray-200">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #34679A, #2C5A85)">
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide w-8">#</th>
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">Tela</th>
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">Arquivo</th>
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">Perfil</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr><td class="px-4 py-2.5 text-gray-400 text-xs">1</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Tela Inicial</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">index.php</td><td class="px-4 py-2.5"><span class="badge bg-gray-100 text-gray-600">Público</span></td></tr>
+                        <tr class="bg-gray-50"><td class="px-4 py-2.5 text-gray-400 text-xs">2</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Login</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">login.php</td><td class="px-4 py-2.5"><span class="badge bg-gray-100 text-gray-600">Público</span></td></tr>
+                        <tr><td class="px-4 py-2.5 text-gray-400 text-xs">3</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Cadastro de Aluno</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">cadastro.php</td><td class="px-4 py-2.5"><span class="badge bg-gray-100 text-gray-600">Público</span></td></tr>
+                        <tr class="bg-gray-50"><td class="px-4 py-2.5 text-gray-400 text-xs">4</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Catálogo de Cursos</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">cursos.php</td><td class="px-4 py-2.5"><span class="badge bg-blue-100 text-blue-700">Aluno</span></td></tr>
+                        <tr><td class="px-4 py-2.5 text-gray-400 text-xs">5</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Meus Cursos</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">meus_cursos.php</td><td class="px-4 py-2.5"><span class="badge bg-blue-100 text-blue-700">Aluno</span></td></tr>
+                        <tr class="bg-gray-50"><td class="px-4 py-2.5 text-gray-400 text-xs">6</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Módulos do Curso</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">curso.php</td><td class="px-4 py-2.5"><span class="badge bg-blue-100 text-blue-700">Aluno</span></td></tr>
+                        <tr><td class="px-4 py-2.5 text-gray-400 text-xs">7</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Player de Aula</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">aula.php</td><td class="px-4 py-2.5"><span class="badge bg-blue-100 text-blue-700">Aluno</span></td></tr>
+                        <tr class="bg-gray-50"><td class="px-4 py-2.5 text-gray-400 text-xs">8</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Dashboard Admin</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">admin/index.php</td><td class="px-4 py-2.5"><span class="badge bg-red-100 text-red-700">Admin</span></td></tr>
+                        <tr><td class="px-4 py-2.5 text-gray-400 text-xs">9</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Gerenciar Cursos</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">admin/cursos.php</td><td class="px-4 py-2.5"><span class="badge bg-red-100 text-red-700">Admin</span></td></tr>
+                        <tr class="bg-gray-50"><td class="px-4 py-2.5 text-gray-400 text-xs">10</td><td class="px-4 py-2.5 font-semibold text-gray-700 text-sm">Form Curso / Módulo / Aula</td><td class="px-4 py-2.5 font-mono text-xs text-gray-500">admin/*_form.php</td><td class="px-4 py-2.5"><span class="badge bg-red-100 text-red-700">Admin</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 6 ════════════════════════════════════ -->
+    <div class="section-card page-break">
+        <div class="section-header">
+            <div class="icon-circle">6</div>
+            Critérios de Avaliação
+        </div>
+        <div class="section-body">
+            <div class="rounded-xl overflow-hidden border border-gray-200 mb-5">
+                <table class="w-full">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #34679A, #2C5A85)">
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide w-8">#</th>
+                            <th class="px-4 py-3 text-left text-white font-semibold text-xs uppercase tracking-wide">O que será avaliado</th>
+                            <th class="px-4 py-3 text-center text-white font-semibold text-xs uppercase tracking-wide w-24">Pontos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="eval-row">
+                            <td class="px-4 text-gray-400 text-xs">1</td>
+                            <td class="px-4">Login funcionando com sessão PHP (<code>$_SESSION</code>)</td>
+                            <td class="px-4 text-center eval-pts">1,5</td>
+                        </tr>
+                        <tr class="eval-row bg-gray-50">
+                            <td class="px-4 text-gray-400 text-xs">2</td>
+                            <td class="px-4">Cadastro de aluno com verificação de e-mail duplicado</td>
+                            <td class="px-4 text-center eval-pts">1,0</td>
+                        </tr>
+                        <tr class="eval-row">
+                            <td class="px-4 text-gray-400 text-xs">3</td>
+                            <td class="px-4">Páginas protegidas: redireciona para login se não logado</td>
+                            <td class="px-4 text-center eval-pts">1,0</td>
+                        </tr>
+                        <tr class="eval-row bg-gray-50">
+                            <td class="px-4 text-gray-400 text-xs">4</td>
+                            <td class="px-4">Catálogo de cursos com inscrição funcionando</td>
+                            <td class="px-4 text-center eval-pts">1,5</td>
+                        </tr>
+                        <tr class="eval-row">
+                            <td class="px-4 text-gray-400 text-xs">5</td>
+                            <td class="px-4">Meus cursos → módulos → aulas (navegação completa do aluno)</td>
+                            <td class="px-4 text-center eval-pts">2,0</td>
+                        </tr>
+                        <tr class="eval-row bg-gray-50">
+                            <td class="px-4 text-gray-400 text-xs">6</td>
+                            <td class="px-4">Painel admin com CRUD de cursos, módulos e aulas</td>
+                            <td class="px-4 text-center eval-pts">2,0</td>
+                        </tr>
+                        <tr class="eval-row">
+                            <td class="px-4 text-gray-400 text-xs">7</td>
+                            <td class="px-4">Layout com estilo (CSS / Tailwind) e código organizado</td>
+                            <td class="px-4 text-center eval-pts">1,0</td>
+                        </tr>
+                        <tr style="background: linear-gradient(135deg, #34679A, #2C5A85)">
+                            <td class="px-4 py-3 text-white font-bold" colspan="2">TOTAL</td>
+                            <td class="px-4 py-3 text-center text-white font-extrabold text-xl">10,0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="rounded-xl border border-green-200 bg-green-50 p-4">
+                    <p class="font-bold text-green-700 text-sm mb-2 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-sm"></span>
+                        Bônus (até +1 ponto extra)
+                    </p>
+                    <ul class="text-gray-600 text-sm space-y-1.5">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-green-400 rounded-full flex-shrink-0"></span>Upload de imagem de capa para os cursos</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-green-400 rounded-full flex-shrink-0"></span>Marcar aula como concluída</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-green-400 rounded-full flex-shrink-0"></span>Barra de progresso no curso</li>
+                    </ul>
+                </div>
+                <div class="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                    <p class="font-bold text-orange-700 text-sm mb-2 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center text-sm"></span>
+                        Causa desconto de nota
+                    </p>
+                    <ul class="text-gray-600 text-sm space-y-1.5">
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0"></span>Página interna acessível sem login</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0"></span>Aluno consegue acessar o painel admin</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0"></span>Senha salva em texto puro (sem <code>password_hash</code>)</li>
+                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0"></span>Sistema não conecta ao banco</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════ SEÇÃO 7 ════════════════════════════════════ -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="icon-circle">7</div>
+            Como Começar
+        </div>
+        <div class="section-body">
+            <ol class="space-y-3">
+                <li class="flex gap-3 items-start">
+                    <span class="w-7 h-7 bg-senai-blue text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+                    <p class="text-sm text-gray-700 pt-0.5"><strong>Importe o banco:</strong> phpMyAdmin → Importar → selecione <code>projeto/sql/banco.sql</code> → Executar.</p>
+                </li>
+                <li class="flex gap-3 items-start">
+                    <span class="w-7 h-7 bg-senai-blue text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+                    <p class="text-sm text-gray-700 pt-0.5"><strong>Copie o <code>conexao.php</code> da aula 5</strong> e troque só o nome do banco para <code>ead_senai</code>.</p>
+                </li>
+                <li class="flex gap-3 items-start">
+                    <span class="w-7 h-7 bg-senai-blue text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+                    <p class="text-sm text-gray-700 pt-0.5"><strong>Copie <code>logado.php</code> e <code>login.php</code> da aula 5</strong> — funcionam sem grandes alterações, só mude o nome da tabela.</p>
+                </li>
+                <li class="flex gap-3 items-start">
+                    <span class="w-7 h-7 bg-senai-green text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
+                    <p class="text-sm text-gray-700 pt-0.5">
+                        <strong>Siga a Trilha:</strong> abra o arquivo
+                        <a href="TRILHA.html" class="text-senai-blue underline font-semibold">TRILHA.html</a>
+                        e construa o sistema passo a passo, marcando cada etapa concluída.
+                    </p>
+                </li>
+                <li class="flex gap-3 items-start">
+                    <span class="w-7 h-7 bg-senai-green text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</span>
+                    <p class="text-sm text-gray-700 pt-0.5">
+                        <strong>Consulte os modelos de tela:</strong> pasta
+                        <a href="telas/index.html" class="text-senai-blue underline font-semibold">telas/</a>
+                        mostra como cada página deve ficar visualmente.
+                    </p>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer style="background: linear-gradient(135deg, #1a3a5c, #34679A)" class="text-white text-center text-xs py-4">
+    <p class="font-semibold">SENAI — Desenvolvimento Web &nbsp;·&nbsp; Trabalho Avaliativo — Aula 6 &nbsp;·&nbsp; Sistema EAD</p>
+    <p class="text-blue-300 mt-0.5">Consulte TRILHA.html para os passos do desenvolvimento</p>
+</footer>
+
+</body>
+</html>

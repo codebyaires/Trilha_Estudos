@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trilha do Trabalho — Sistema EAD | SENAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { senai: { red:'#C0392B', blue:'#34679A', 'blue-dark':'#2C5A85', orange:'#E67E22', green:'#27AE60', yellow:'#F1C40F' } } } }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        .step-connector { position:absolute; left:27px; top:56px; width:2px; bottom:-24px; z-index:0; }
+        .step-wrap { position:relative; padding-bottom:24px; }
+        .step-wrap:last-child .step-connector { display:none; }
+
+        .step-num { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:900; flex-shrink:0; position:relative; z-index:1; transition:transform .2s; }
+        .step-num:hover { transform:scale(1.08); }
+
+        .step-card { flex:1; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.07); transition:box-shadow .2s; }
+        .step-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.12); }
+
+        .check-item { display:flex; align-items:flex-start; gap:10px; padding:6px 0; cursor:pointer; }
+        .check-item input[type=checkbox] { width:16px; height:16px; accent-color:#27AE60; margin-top:2px; flex-shrink:0; cursor:pointer; }
+        .check-item label { font-size:13px; color:#374151; cursor:pointer; line-height:1.5; }
+        .check-item input:checked + label { color:#9ca3af; text-decoration:line-through; }
+
+        code { background:#f1f5f9; padding:1px 5px; border-radius:4px; font-size:0.78rem; font-family:'Consolas',monospace; }
+        .tag { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; }
+
+        #barra-geral { transition:width .4s ease; }
+        .step-done .step-num { background:#27AE60 !important; color:#fff !important; }
+
+        .checkpoint { border-radius:12px; overflow:hidden; margin-bottom:24px; border:2px dashed #E67E22; }
+
+        @media print {
+            .no-print { display:none !important; }
+            .page-break { page-break-before:always; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- CABEÇALHO -->
+<header class="bg-senai-blue text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+        <div>
+            <p class="text-xs text-blue-200 uppercase tracking-widest">SENAI — Desenvolvimento Web · Aula 6</p>
+            <h1 class="text-xl font-extrabold">Trilha do Trabalho — Sistema EAD</h1>
+        </div>
+        <div class="text-right hidden md:block">
+            <p class="text-xs text-blue-200">Seu progresso</p>
+            <p class="text-2xl font-extrabold" id="txt-progresso">0%</p>
+        </div>
+    </div>
+    <div class="bg-senai-blue-dark h-2">
+        <div id="barra-geral" class="bg-yellow-400 h-2" style="width:0%"></div>
+    </div>
+</header>
+
+<div class="max-w-4xl mx-auto px-6 py-6">
+
+    <!-- INTRO -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6 shadow-sm flex gap-4 items-start">
+        <span class="text-4xl flex-shrink-0 mt-1"></span>
+        <div>
+            <h2 class="font-extrabold text-gray-800 text-lg mb-1">Siga a trilha do começo ao fim</h2>
+            <p class="text-sm text-gray-600 mb-3">
+                Construa o <strong>painel admin primeiro</strong> — assim você terá cursos, módulos e aulas cadastrados para testar as telas do aluno.
+                Marque os itens conforme for fazendo. Ao terminar tudo, você terá o sistema EAD completo e funcional.
+            </p>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                <strong>Você já sabe fazer isso!</strong> O padrão é o mesmo da aula 5:
+                <code>mysqli_query</code>, <code>$_SESSION</code>, <code>$_POST</code>, <code>$_GET</code>,
+                <code>logado.php</code>, <code>conexao.php</code>. Só muda o contexto.
+                No admin, o CRUD usa arquivos separados: <code>*_form.php</code> para cadastrar/editar e <code>*_delete.php</code> para excluir.
+            </div>
+        </div>
+    </div>
+
+    <!-- LEGENDA -->
+    <div class="flex flex-wrap gap-3 mb-6 text-xs font-semibold">
+        <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-senai-red inline-block"></span> Admin (construir primeiro)</span>
+        <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-senai-blue inline-block"></span> Área do Aluno</span>
+        <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-senai-green inline-block"></span> Finalização</span>
+    </div>
+
+    <div id="trilha">
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 1 — LOGIN                            -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-1">
+        <div>
+            <div class="step-num bg-senai-red text-white shadow">1</div>
+            <div class="step-connector bg-red-200"></div>
+        </div>
+        <div class="step-card border border-red-200 bg-white">
+            <div class="bg-senai-red text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 1 — Login</span>
+                <span class="tag bg-white/20 text-white">login.php — necessário para acessar o admin</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">O login precisa existir antes do admin — você vai precisar dele para entrar no painel e cadastrar os dados. Copie da aula 5 e adapte.</p>
+                <div class="bg-gray-50 rounded-lg p-4 space-y-1">
+                    <div class="check-item"><input type="checkbox" id="c4a"><label for="c4a">Importar <code>projeto/sql/banco.sql</code> no phpMyAdmin — banco <code>ead_senai</code> com as 5 tabelas</label></div>
+                    <div class="check-item"><input type="checkbox" id="c4b"><label for="c4b">Criar as pastas: <code>projeto/</code>, <code>projeto/includes/</code>, <code>projeto/admin/</code>, <code>projeto/admin/includes/</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c4c"><label for="c4c">Copiar <code>conexao.php</code> da aula 5 e alterar o banco para <code>ead_senai</code>. Copiar <code>logado.php</code> sem alteração.</label></div>
+                    <div class="check-item"><input type="checkbox" id="c4d"><label for="c4d">Copiar <code>login.php</code> da aula 5, alterar a tabela para <code>usuarios</code> e adicionar <code>$_SESSION["usuario_tipo"] = $usuario["tipo"];</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c4e"><label for="c4e">Redirecionar conforme o tipo: <code>'admin'</code> → <code>admin/index.php</code> &nbsp;/&nbsp; <code>'aluno'</code> → <code>meus_cursos.php</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c4f"><label for="c4f">Testar: logar com <code>admin@ead.com</code> / <code>senai123</code> e confirmar que vai para <code>admin/index.php</code></label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 2 — ADMIN DASHBOARD                  -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-2">
+        <div>
+            <div class="step-num bg-senai-red text-white shadow">2</div>
+            <div class="step-connector bg-red-200"></div>
+        </div>
+        <div class="step-card border border-red-200 bg-white">
+            <div class="bg-senai-red text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 2 — Admin: Dashboard</span>
+                <span class="tag bg-white/20 text-white">admin/index.php</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Dashboard simples que mostra os totais. Toda página dentro de <code>admin/</code> começa com a verificação de sessão.</p>
+                <div class="bg-gray-50 rounded-lg p-4 space-y-1">
+                    <div class="check-item"><input type="checkbox" id="c5a"><label for="c5a">No topo de <strong>todo arquivo</strong> da pasta <code>admin/</code>: verificar sessão e tipo — se não for admin, redirecionar para <code>../login.php</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c5b"><label for="c5b">Criar <code>admin/includes/menu_admin.php</code> com links: Dashboard, Cursos, Sair. Usar <code>require_once "includes/menu_admin.php"</code> em cada arquivo do admin.</label></div>
+                    <div class="check-item"><input type="checkbox" id="c5c"><label for="c5c">No dashboard exibir contagens: <code>SELECT COUNT(*) FROM cursos</code>, <code>FROM modulos</code>, <code>FROM aulas</code>, <code>FROM usuarios WHERE tipo='aluno'</code></label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 3 — ADMIN CRUD CURSOS                -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-3">
+        <div>
+            <div class="step-num bg-senai-red text-white shadow">3</div>
+            <div class="step-connector bg-red-200"></div>
+        </div>
+        <div class="step-card border border-red-200 bg-white">
+            <div class="bg-senai-red text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 3 — Admin: CRUD de Cursos</span>
+                <span class="tag bg-white/20 text-white">cursos.php · curso_form.php · curso_delete.php</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">
+                    O CRUD usa três arquivos separados. A lógica do formulário é a mesma do <code>cadastro_produto.php</code> da aula 5.
+                </p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2">admin/cursos.php — Listagem</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c6a"><label for="c6a">Listar todos os cursos em tabela: <code>SELECT * FROM cursos</code></label></div>
+                        <div class="check-item"><input type="checkbox" id="c6b"><label for="c6b">Botão "Novo Curso" → <code>curso_form.php</code> · Botão "Editar" → <code>curso_form.php?id=ID</code> · Botão "Excluir" → <code>curso_delete.php?id=ID</code> com <code>confirm()</code></label></div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4">admin/curso_form.php — Cadastrar / Editar</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c6c"><label for="c6c">Se <code>$_GET["id"]</code> existir: buscar o curso e pré-preencher os campos. Se não: formulário vazio</label></div>
+                        <div class="check-item"><input type="checkbox" id="c6d"><label for="c6d">Campos: <code>titulo</code>, <code>descricao</code>. POST: se <code>$_POST["id"]</code> tiver valor → <code>UPDATE</code>; sem valor → <code>INSERT</code>. Redirecionar para <code>cursos.php</code></label></div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4">admin/curso_delete.php — Excluir</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c6e"><label for="c6e">Receber <code>$_GET["id"]</code>, executar <code>DELETE FROM cursos WHERE id = '$id'</code> e redirecionar para <code>cursos.php</code></label></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 4 — ADMIN CRUD MÓDULOS + AULAS       -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-4">
+        <div>
+            <div class="step-num bg-senai-red text-white shadow">4</div>
+            <div class="step-connector bg-red-200"></div>
+        </div>
+        <div class="step-card border border-red-200 bg-white">
+            <div class="bg-senai-red text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 4 — Admin: CRUD de Módulos e Aulas</span>
+                <span class="tag bg-white/20 text-white">modulo_form · aula_form · *_delete</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Mesma estrutura da Etapa 3. Copie os 3 arquivos de cursos e ajuste a tabela e os campos extras.</p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2">Módulos — 3 arquivos</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c7a"><label for="c7a"><code>admin/modulos.php</code>: listar com <code>WHERE curso_id = '$id'</code>. Link na listagem de cursos: "Ver Módulos" → <code>modulos.php?curso_id=N</code></label></div>
+                        <div class="check-item"><input type="checkbox" id="c7b"><label for="c7b"><code>admin/modulo_form.php</code>: campos <code>titulo</code>, <code>ordem</code> e campo oculto <code>curso_id</code>. POST faz INSERT ou UPDATE.</label></div>
+                        <div class="check-item"><input type="checkbox" id="c7c"><label for="c7c"><code>admin/modulo_delete.php</code>: <code>DELETE FROM modulos WHERE id = '$id'</code> e redirecionar</label></div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4">Aulas — 3 arquivos</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c7d"><label for="c7d"><code>admin/aulas.php</code>: listar com <code>WHERE modulo_id = '$id'</code>. Link na listagem de módulos: "Ver Aulas" → <code>aulas.php?modulo_id=N</code></label></div>
+                        <div class="check-item"><input type="checkbox" id="c7e"><label for="c7e"><code>admin/aula_form.php</code>: campos <code>titulo</code>, <code>video_url</code>, <code>duracao</code> e campo oculto <code>modulo_id</code>. POST faz INSERT ou UPDATE.</label></div>
+                        <div class="check-item"><input type="checkbox" id="c7f"><label for="c7f"><code>admin/aula_delete.php</code>: <code>DELETE FROM aulas WHERE id = '$id'</code> e redirecionar</label></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div><!-- /trilha admin -->
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- CHECKPOINT — INSERIR DADOS                 -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="checkpoint mb-6">
+        <div class="bg-senai-orange text-white px-5 py-3 flex items-center gap-3">
+            <span class="text-2xl"></span>
+            <div>
+                <p class="font-extrabold text-sm uppercase tracking-wide">Checkpoint — Insira Dados Reais Antes de Continuar!</p>
+                <p class="text-xs text-orange-100 mt-0.5">A área do aluno só terá conteúdo se o admin já tiver cadastrado cursos, módulos e aulas.</p>
+            </div>
+        </div>
+        <div class="bg-orange-50 px-5 py-4">
+            <ol class="text-sm text-gray-700 space-y-2 list-decimal pl-4">
+                <li>Logar com <code>admin@ead.com</code> / <code>senai123</code></li>
+                <li>Cadastrar pelo menos <strong>2 cursos</strong> com título e descrição</li>
+                <li>Para cada curso, cadastrar pelo menos <strong>2 módulos</strong></li>
+                <li>Para cada módulo, cadastrar pelo menos <strong>2 aulas</strong> com URL de vídeo</li>
+                <li>Confirmar no phpMyAdmin que as tabelas têm dados</li>
+            </ol>
+            <p class="text-xs text-orange-700 mt-3 font-semibold">Só avance para a Etapa 5 quando o painel admin estiver funcionando e com dados inseridos.</p>
+        </div>
+    </div>
+
+    <div id="trilha-aluno">
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 5 — CADASTRO DO ALUNO               -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-5">
+        <div>
+            <div class="step-num bg-senai-blue text-white shadow">5</div>
+            <div class="step-connector bg-blue-200"></div>
+        </div>
+        <div class="step-card border border-blue-200 bg-white">
+            <div class="bg-senai-blue text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 5 — Cadastro do Aluno</span>
+                <span class="tag bg-white/20 text-white">cadastro.php</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Formulário público. Igual ao cadastro de usuário da aula 5 — campos <code>nome</code>, <code>email</code> e <code>senha</code>.</p>
+                <div class="bg-gray-50 rounded-lg p-4 space-y-1">
+                    <div class="check-item"><input type="checkbox" id="c8a"><label for="c8a">Formulário HTML com campos: <strong>nome</strong>, <strong>email</strong> e <strong>senha</strong> — <code>method="POST"</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c8b"><label for="c8b">Verificar e-mail duplicado: <code>SELECT * FROM usuarios WHERE email = '$email'</code> + <code>mysqli_num_rows</code>. Mostrar erro se já existir.</label></div>
+                    <div class="check-item"><input type="checkbox" id="c8c"><label for="c8c">Se e-mail livre: <code>INSERT INTO usuarios (nome, email, senha, tipo) VALUES ('$nome', '$email', '$hash', 'aluno')</code> — usar <code>password_hash($senha, PASSWORD_DEFAULT)</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c8d"><label for="c8d">Após cadastro com sucesso: redirecionar para <code>login.php</code></label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 6 — PROTEÇÃO DAS PÁGINAS DO ALUNO   -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-6">
+        <div>
+            <div class="step-num bg-senai-blue text-white shadow">6</div>
+            <div class="step-connector bg-blue-200"></div>
+        </div>
+        <div class="step-card border border-blue-200 bg-white">
+            <div class="bg-senai-blue text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 6 — Proteger as Páginas do Aluno</span>
+                <span class="tag bg-white/20 text-white">logado.php — igual à aula 5</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Todo arquivo interno do aluno deve incluir o <code>logado.php</code> no topo — exatamente como na aula 5.</p>
+                <div class="bg-gray-50 rounded-lg p-4 space-y-1">
+                    <div class="check-item"><input type="checkbox" id="c9a"><label for="c9a">Em <code>cursos.php</code>, <code>meus_cursos.php</code>, <code>curso.php</code> e <code>aula.php</code>: adicionar no topo <code>session_start();</code> + <code>require_once "logado.php";</code> + <code>require_once "conexao.php";</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c9b"><label for="c9b">Testar: abrir <code>meus_cursos.php</code> no navegador sem estar logado — deve redirecionar para <code>login.php</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c9c"><label for="c9c">Criar a rota completa: logar como aluno → deve ir para <code>meus_cursos.php</code></label></div>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700 mt-3 font-semibold">Vale nota: toda página interna precisa ter essa proteção. Páginas sem <code>logado.php</code> perdem pontos.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 7 — CATÁLOGO + INSCRIÇÃO            -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-7">
+        <div>
+            <div class="step-num bg-senai-blue text-white shadow">7</div>
+            <div class="step-connector bg-blue-200"></div>
+        </div>
+        <div class="step-card border border-blue-200 bg-white">
+            <div class="bg-senai-blue text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 7 — Catálogo de Cursos e Inscrição</span>
+                <span class="tag bg-white/20 text-white">cursos.php</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Agora que o admin já cadastrou cursos, o aluno pode vê-los e se inscrever. Para cada curso, o sistema verifica se já está inscrito para mostrar o botão certo.</p>
+                <div class="bg-gray-50 rounded-lg p-4 space-y-1">
+                    <div class="check-item"><input type="checkbox" id="c10a"><label for="c10a">Buscar todos os cursos: <code>SELECT * FROM cursos</code> e listar com <code>while (mysqli_fetch_assoc)</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c10b"><label for="c10b">Para cada curso verificar inscrição: <code>SELECT * FROM inscricoes WHERE usuario_id = '$uid' AND curso_id = '$cid'</code> + <code>mysqli_num_rows</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c10c"><label for="c10c">Se não inscrito: botão "Inscrever-se" → <code>?inscrever=ID</code>. Se inscrito: botão "Acessar" → <code>curso.php?id=ID</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c10d"><label for="c10d">No topo do arquivo: se <code>$_GET["inscrever"]</code> existir, fazer <code>INSERT INTO inscricoes (usuario_id, curso_id) VALUES ('$uid', '$cid')</code> e recarregar</label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 8 — MEUS CURSOS                     -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-8">
+        <div>
+            <div class="step-num bg-senai-blue text-white shadow">8</div>
+            <div class="step-connector bg-blue-200"></div>
+        </div>
+        <div class="step-card border border-blue-200 bg-white">
+            <div class="bg-senai-blue text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 8 — Meus Cursos</span>
+                <span class="tag bg-white/20 text-white">meus_cursos.php</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Página pessoal. Lista só os cursos em que o aluno está inscrito, com botão "Acessar".</p>
+                <div class="bg-gray-50 rounded-lg p-4 space-y-1">
+                    <div class="check-item"><input type="checkbox" id="c11a"><label for="c11a">Buscar inscrições + cursos com JOIN: <code>SELECT c.* FROM cursos c INNER JOIN inscricoes i ON c.id = i.curso_id WHERE i.usuario_id = '$uid'</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c11b"><label for="c11b">Listar os cursos com botão "Acessar" linkando para <code>curso.php?id=ID</code></label></div>
+                    <div class="check-item"><input type="checkbox" id="c11c"><label for="c11c">Se nenhum curso: exibir mensagem "Você ainda não está inscrito em nenhum curso." com link para <code>cursos.php</code></label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 9 — MÓDULOS + PLAYER DE AULA        -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-9">
+        <div>
+            <div class="step-num bg-senai-blue text-white shadow">9</div>
+            <div class="step-connector bg-blue-200"></div>
+        </div>
+        <div class="step-card border border-blue-200 bg-white">
+            <div class="bg-senai-blue text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 9 — Módulos e Player de Aula</span>
+                <span class="tag bg-white/20 text-white">curso.php · aula.php</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Dois arquivos simples: <code>curso.php</code> lista os módulos e aulas do curso; <code>aula.php</code> exibe o player de vídeo.</p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2">curso.php — Módulos e Aulas do Curso</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c12a"><label for="c12a">Receber <code>$id = $_GET["id"]</code> e buscar os dados do curso: <code>SELECT * FROM cursos WHERE id = '$id'</code></label></div>
+                        <div class="check-item"><input type="checkbox" id="c12b"><label for="c12b">Para cada módulo (<code>WHERE curso_id = '$id'</code>), listar suas aulas (<code>WHERE modulo_id = '$mid'</code>) com link para <code>aula.php?id=ID</code></label></div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4">aula.php — Player</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c12c"><label for="c12c">Receber <code>$id = $_GET["id"]</code> e buscar a aula: <code>SELECT * FROM aulas WHERE id = '$id'</code></label></div>
+                        <div class="check-item"><input type="checkbox" id="c12d"><label for="c12d">Exibir título, duração e o vídeo em <code>&lt;iframe src="&lt;?php echo $aula['video_url']; ?&gt;"&gt;</code></label></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ETAPA 10 — TESTE E ENTREGA                 -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="step-wrap flex gap-4" id="step-10">
+        <div>
+            <div class="step-num bg-senai-green text-white shadow">10</div>
+        </div>
+        <div class="step-card border-2 border-senai-green bg-white">
+            <div class="bg-senai-green text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm uppercase tracking-wide">Etapa 10 — Testar Tudo e Entregar</span>
+                <span class="tag bg-white/20 text-white">Finalização</span>
+            </div>
+            <div class="p-5">
+                <p class="text-sm text-gray-600 mb-4">Percorra o sistema nos dois perfis e confirme que tudo funciona antes de compactar.</p>
+                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2">Checklist — Admin</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c13a"><label for="c13a">Login com <code>admin@ead.com</code> / <code>senai123</code> → vai para <code>admin/index.php</code></label></div>
+                        <div class="check-item"><input type="checkbox" id="c13b"><label for="c13b">Cadastrar um novo curso → aparece na listagem</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13c"><label for="c13c">Editar o curso → título atualizado no banco</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13d"><label for="c13d">Adicionar módulo e aula ao curso → aparecem na listagem</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13e"><label for="c13e">Excluir o curso de teste → desaparece da listagem</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13f"><label for="c13f">Tentar acessar <code>admin/index.php</code> logado como aluno → deve bloquear</label></div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4">Checklist — Aluno</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c13g"><label for="c13g">Tentar acessar <code>meus_cursos.php</code> sem login → deve redirecionar para login</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13h"><label for="c13h">Cadastrar um novo aluno com e-mail novo → confirmado no banco</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13i"><label for="c13i">Tentar cadastrar com e-mail já existente → aparece mensagem de erro</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13j"><label for="c13j">Fazer login com o aluno → vai para Meus Cursos</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13k"><label for="c13k">Ir em Catálogo → inscrever em um curso → aparece em Meus Cursos</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13l"><label for="c13l">Meus Cursos → Módulos do Curso → Player de Aula → vídeo exibido</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13m"><label for="c13m">Fazer logout → sessão encerrada, não consegue acessar páginas internas</label></div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4">Antes de compactar</p>
+                    <div class="space-y-1">
+                        <div class="check-item"><input type="checkbox" id="c13n"><label for="c13n">Remover <code>var_dump()</code> e <code>print_r()</code> que ficaram de debug</label></div>
+                        <div class="check-item"><input type="checkbox" id="c13o"><label for="c13o">Compactar a pasta <code>aula6/projeto/</code> em um arquivo <code>.zip</code> com seu nome</label></div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-senai-green to-green-400 rounded-xl p-5 text-white text-center">
+                    <div class="text-4xl mb-2"></div>
+                    <h3 class="font-extrabold text-lg mb-1">Parabéns!</h3>
+                    <p class="text-sm text-green-100">Se você chegou aqui e marcou tudo, construiu um sistema EAD completo: painel admin com CRUD real, login com sessão, cadastro de aluno, catálogo de cursos com inscrição, navegação por módulos e player de aula. Tudo com o que você aprendeu nas aulas anteriores!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div><!-- /trilha-aluno -->
+
+    <!-- LINKS ÚTEIS -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mt-8 mb-8 shadow-sm">
+        <h3 class="font-bold text-gray-700 text-sm mb-3">Arquivos do Projeto</h3>
+        <div class="flex flex-wrap gap-3 text-xs">
+            <a href="REQUISITOS.html"       class="bg-senai-blue text-white px-3 py-2 rounded-lg font-semibold hover:bg-senai-blue-dark transition">Requisitos</a>
+            <a href="wireframes.html"       class="bg-senai-orange text-white px-3 py-2 rounded-lg font-semibold hover:opacity-90 transition">Wireframes</a>
+            <a href="telas/index.html"      class="bg-senai-green text-white px-3 py-2 rounded-lg font-semibold hover:opacity-90 transition">Ver Telas HTML</a>
+            <a href="projeto/sql/banco.sql" class="bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold hover:opacity-90 transition">banco.sql</a>
+        </div>
+    </div>
+
+</div>
+
+<footer class="bg-senai-blue text-white text-center text-xs py-3">
+    SENAI — Desenvolvimento Web &nbsp;|&nbsp; Trilha do Trabalho — Sistema EAD &nbsp;|&nbsp; Aula 6
+</footer>
+
+<script>
+    const STORAGE_KEY = 'ead_senai_trilha_v4';
+    const TODOS = [
+        'c4a','c4b','c4c','c4d','c4e','c4f',
+        'c5a','c5b','c5c',
+        'c6a','c6b','c6c','c6d','c6e',
+        'c7a','c7b','c7c','c7d','c7e','c7f',
+        'c8a','c8b','c8c','c8d',
+        'c9a','c9b','c9c',
+        'c10a','c10b','c10c','c10d',
+        'c11a','c11b','c11c',
+        'c12a','c12b','c12c','c12d',
+        'c13a','c13b','c13c','c13d','c13e','c13f',
+        'c13g','c13h','c13i','c13j','c13k','c13l','c13m','c13n','c13o'
+    ];
+    const ETAPAS = {
+        1:  ['c4a','c4b','c4c','c4d','c4e','c4f'],
+        2:  ['c5a','c5b','c5c'],
+        3:  ['c6a','c6b','c6c','c6d','c6e'],
+        4:  ['c7a','c7b','c7c','c7d','c7e','c7f'],
+        5:  ['c8a','c8b','c8c','c8d'],
+        6:  ['c9a','c9b','c9c'],
+        7:  ['c10a','c10b','c10c','c10d'],
+        8:  ['c11a','c11b','c11c'],
+        9:  ['c12a','c12b','c12c','c12d'],
+        10: ['c13a','c13b','c13c','c13d','c13e','c13f','c13g','c13h','c13i','c13j','c13k','c13l','c13m','c13n','c13o']
+    };
+
+    function salvar() {
+        const estado = {};
+        TODOS.forEach(id => { const el = document.getElementById(id); if (el) estado[id] = el.checked; });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    }
+
+    function carregar() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const estado = JSON.parse(raw);
+        TODOS.forEach(id => { const el = document.getElementById(id); if (el && estado[id]) el.checked = true; });
+    }
+
+    function atualizar() {
+        const total    = TODOS.length;
+        const marcados = TODOS.filter(id => { const el = document.getElementById(id); return el && el.checked; }).length;
+        const pct      = Math.round((marcados / total) * 100);
+        document.getElementById('barra-geral').style.width = pct + '%';
+        document.getElementById('txt-progresso').textContent = pct + '%';
+
+        Object.entries(ETAPAS).forEach(([num, ids]) => {
+            const step = document.getElementById('step-' + num);
+            if (!step) return;
+            const ok = ids.every(id => { const el = document.getElementById(id); return el && el.checked; });
+            const numEl = step.querySelector('.step-num');
+            if (ok) {
+                step.classList.add('step-done');
+                if (numEl && numEl.textContent !== '✓') numEl.textContent = '✓';
+            } else {
+                step.classList.remove('step-done');
+                if (numEl && numEl.textContent === '✓') numEl.textContent = num;
+            }
+        });
+    }
+
+    carregar();
+    atualizar();
+    TODOS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => { salvar(); atualizar(); });
+    });
+</script>
+</body>
+</html>
