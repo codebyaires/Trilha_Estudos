@@ -8,7 +8,7 @@ CREATE DATABASE IF NOT EXISTS ead_senai
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE ead_senai;
+USE trilha_estudos;
 
 -- ============================================================
 -- TABELAS
