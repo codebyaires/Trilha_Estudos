@@ -7,13 +7,6 @@ $sucesso = "";
 $erro = "";
 $editando = NULL;
 
-
-
-
- 
-    
-
-
 // Buscar todos os cliente para listar
 
 ?>
