@@ -57,7 +57,7 @@
         <div class="bg-white border-b border-gray-200 px-6 py-4">
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
                 <a href="cursos.php" class="hover:text-senai-blue">Cursos</a>
-                <span>›</span>
+                <span></span>
                 <span class="text-gray-700 font-semibold">Editar Curso</span>
             </div>
             <div class="flex items-center justify-between">

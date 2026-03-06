@@ -36,7 +36,7 @@
         <div class="max-w-6xl mx-auto">
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
                 <a href="meus_cursos.php" class="hover:text-senai-blue">Meus Cursos</a>
-                <span>›</span>
+                <span></span>
                 <span class="text-gray-700 font-semibold">HTML e CSS do Zero</span>
             </div>
             <div class="flex items-center justify-between flex-wrap gap-3">
