@@ -39,13 +39,13 @@
         </div>
         <!-- Menu -->
         <nav class="flex-1 p-3 space-y-1">
-            <a href="index.html"      class="nav-link active">📊 <span>Dashboard</span></a>
-            <a href="cursos.html"     class="nav-link">📚 <span>Cursos</span></a>
-            <a href="modulos.html"    class="nav-link">📦 <span>Módulos</span></a>
-            <a href="aulas.html"      class="nav-link">🎬 <span>Aulas</span></a>
+            <a href="index.php"      class="nav-link active">📊 <span>Dashboard</span></a>
+            <a href="cursos.php"     class="nav-link">📚 <span>Cursos</span></a>
+            <a href="modulos.php"    class="nav-link">📦 <span>Módulos</span></a>
+            <a href="aulas.php"      class="nav-link">🎬 <span>Aulas</span></a>
             <div class="pt-2 border-t border-gray-700 mt-2">
-                <a href="../meus_cursos.html" class="nav-link">👁 <span>Ver site</span></a>
-                <a href="../login.html"       class="nav-link text-red-400 hover:text-red-300">🚪 <span>Sair</span></a>
+                <a href="../meus_cursos.php" class="nav-link">👁 <span>Ver site</span></a>
+                <a href="../login.php"       class="nav-link text-red-400 hover:text-red-300">🚪 <span>Sair</span></a>
             </div>
         </nav>
     </aside>
@@ -107,21 +107,21 @@
                 <div class="bg-white rounded-xl shadow-sm p-5">
                     <h2 class="font-bold text-gray-700 mb-4 text-sm">Ações Rápidas</h2>
                     <div class="space-y-2">
-                        <a href="curso_form.html" class="flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition cursor-pointer">
+                        <a href="curso_form.php" class="flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition cursor-pointer">
                             <span class="w-8 h-8 bg-senai-blue rounded-lg flex items-center justify-center text-white text-sm">+</span>
                             <div>
                                 <p class="text-sm font-semibold text-gray-700">Novo Curso</p>
                                 <p class="text-xs text-gray-400">Cadastrar um curso</p>
                             </div>
                         </a>
-                        <a href="modulo_form.html" class="flex items-center gap-3 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition cursor-pointer">
+                        <a href="modulo_form.php" class="flex items-center gap-3 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition cursor-pointer">
                             <span class="w-8 h-8 bg-senai-orange rounded-lg flex items-center justify-center text-white text-sm">+</span>
                             <div>
                                 <p class="text-sm font-semibold text-gray-700">Novo Módulo</p>
                                 <p class="text-xs text-gray-400">Adicionar a um curso</p>
                             </div>
                         </a>
-                        <a href="aula_form.html" class="flex items-center gap-3 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition cursor-pointer">
+                        <a href="aula_form.php" class="flex items-center gap-3 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition cursor-pointer">
                             <span class="w-8 h-8 bg-senai-red rounded-lg flex items-center justify-center text-white text-sm">+</span>
                             <div>
                                 <p class="text-sm font-semibold text-gray-700">Nova Aula</p>
@@ -135,7 +135,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-5 lg:col-span-2">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-bold text-gray-700 text-sm">Cursos Cadastrados</h2>
-                        <a href="cursos.html" class="text-xs text-senai-blue underline">Ver todos</a>
+                        <a href="cursos.php" class="text-xs text-senai-blue underline">Ver todos</a>
                     </div>
                     <table class="w-full text-sm">
                         <thead>
