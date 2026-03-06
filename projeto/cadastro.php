@@ -1,7 +1,7 @@
 <?php
 // Iniciar a sessão e incluir a conexão
 session_start();
-require_once "conexao.php";
+require_once "includes/conexao.php";
 
 $erro = "";
 $sucesso = "";

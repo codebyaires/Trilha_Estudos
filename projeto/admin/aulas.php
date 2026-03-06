@@ -54,9 +54,9 @@
         <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
             <div>
                 <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                    <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> ›
-                    <a href="modulos.php" class="hover:text-senai-blue">Módulos</a> ›
-                    <span class="text-gray-700 font-semibold">Introdução ao HTML</span> ›
+                    <a href="cursos.php" class="hover:text-senai-blue">Cursos</a>
+                    <a href="modulos.php" class="hover:text-senai-blue">Módulos</a>
+                    <span class="text-gray-700 font-semibold">Introdução ao HTML</span>
                     <span>Aulas</span>
                 </div>
                 <h1 class="text-xl font-extrabold text-gray-800">Gerenciar Aulas</h1>

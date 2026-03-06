@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "conexao.php";
+require_once "includes/conexao.php";
 require_once "includes/menu.php";
 
 $sucesso = "";
@@ -112,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
             <h1 class="text-xl font-extrabold text-gray-800"><?php echo $editando ? 'Editar Usuário' : 'Novo Usuário'; ?></h1>
         </div>
-        
+
         <div class="p-6 flex-1 max-w-xl">
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <form method="post" action="">

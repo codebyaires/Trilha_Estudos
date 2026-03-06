@@ -3,7 +3,7 @@
 session_start();
 
 // Incluir o arquivo de conexão com o banco
-require_once "conexao.php";
+require_once "includes/conexao.php";
 
 $erro = "";
 
@@ -13,10 +13,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Receber os dados com segurança
     $email = trim($_POST["email"] ?? "");
     $senha = $_POST["senha"] ?? "";
+    $senha_confirma = $_POST["senha_confirma"] ?? "";
 
-    if (empty($email) || empty($senha)) {
-        $erro = "Por favor, preencha o email e a senha.";
+        // Validações
+    if (empty($email) || empty($senha) || empty($senha)) {
+        $erro = "Por favor, preencha todos os campos.";
+    } elseif ($senha !== $senha_confirma) {
+        $erro = "As senhas não coincidem.";
+    } elseif (strlen($senha) < 6) {
+        $erro = "A senha deve ter no mínimo 6 caracteres.";
     } else {
+    
         // Buscar o usuário no banco usando Prepared Statements (Seguro)
         $stmt = $conexao->prepare("SELECT * FROM usuarios WHERE email = ?");
         $stmt->bind_param("s", $email);
@@ -111,6 +118,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
             </div>
+
+                                    <div class="mb-6">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Confirmar Senha *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔒</span>
+                                <input
+                                    name="senha_confirma"
+                                    type="password"
+                                    required
+                                    placeholder="Repita a senha"
+                                    class="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-senai-green focus:border-transparent"
+                                >
+                            </div>
+                        </div>
 
             <!-- Botão Entrar -->
             <button
