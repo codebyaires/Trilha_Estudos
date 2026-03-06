@@ -1,64 +1,52 @@
 <?php
-// ============================================
-// Arquivo: login.php
-// Função: Tela de login e autenticação do usuário
-// ============================================
-
 // Iniciar a sessão
 session_start();
-
-// Se já está logado, redireciona para o dashboard
-if (isset($_SESSION["usuario_id"])) {
-    header("Location: usuario.php");
-    exit;
-}
 
 // Incluir o arquivo de conexão com o banco
 require_once "conexao.php";
 
-// Variável para armazenar mensagem de erro
 $erro = "";
-$_SESSION["usuario_tipo"] = $usuario["tipo"];
 
-// Verificar se o formulário foi enviado (method POST)
+// Verificar se o formulário foi enviado
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // echo '<pre>';
-    // print_r($_POST);
-    // die;
-    // Receber os dados do formulário
-    $email = $_POST["email"];
-    $senha = $_POST["senha"];
+    // Receber os dados com segurança
+    $email = trim($_POST["email"] ?? "");
+    $senha = $_POST["senha"] ?? "";
 
-    // Buscar o usuário no banco pelo email
-    $sql = "SELECT * FROM usuarios WHERE email = '$email'";
-    $resultado = mysqli_query($conexao, $sql);
+    if (empty($email) || empty($senha)) {
+        $erro = "Por favor, preencha o email e a senha.";
+    } else {
+        // Buscar o usuário no banco usando Prepared Statements (Seguro)
+        $stmt = $conexao->prepare("SELECT * FROM usuarios WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
 
-    // echo '<pre>';
-    // print_r($resultado);
-    // die;
+        // Verificar se encontrou o usuário
+        if ($usuario = $resultado->fetch_assoc()) {
+            
+            // Verificar se a senha bate com a criptografia do banco
+            if (password_verify($senha, $usuario["senha"])) {
+                
+                // Regenerar ID da sessão por segurança
+                session_regenerate_id(true);
 
-    // Verificar se encontrou o usuário
-    if ($usuario = mysqli_fetch_assoc($resultado)) {
+                // Guardar dados do usuário na sessão
+                $_SESSION["usuario_id"] = $usuario["id"];
+                $_SESSION["usuario_nome"] = $usuario["nome"];
+                $_SESSION["usuario_email"] = $usuario["email"];
+                $_SESSION["usuario_tipo"] = $usuario["tipo"];
 
-    //     echo '<pre>';
-    // print_r($usuario);
-    // die;
-        // Verificar se a senha está correta
-        if (password_verify($senha, $usuario["senha"])) {
-            // Guardar dados do usuário na sessão
-            $_SESSION["usuario_id"] = $usuario["id"];
-            $_SESSION["usuario_nome"] = $usuario["nome"];
-            $_SESSION["usuario_email"] = $usuario["email"];
-
-            // Redirecionar para o dashboard
-            header("Location: cadastro_usuario.php");
-            exit;
+                // Redirecionar para a área logada
+                header("Location: meus_cursos.php");
+                exit;
+            } else {
+                $erro = "Email ou senha incorretos.";
+            }
         } else {
             $erro = "Email ou senha incorretos.";
         }
-    } else {
-        $erro = "Email ou senha incorretos.";
     }
 }
 ?>
@@ -72,8 +60,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- CSS personalizado -->
-    <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
@@ -103,6 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     type="email"
                     id="email"
                     name="email"
+                    autocomplete="username"
                     required
                     placeholder="Digite seu email"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -118,6 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     type="password"
                     id="senha"
                     name="senha"
+                    autocomplete="current-password"
                     required
                     placeholder="Digite sua senha"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
