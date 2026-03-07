@@ -1,9 +1,112 @@
+<?php
+// Iniciar a sessão
+session_start();
+
+// Incluir o arquivo de conexão com o banco
+require_once "../includes/conexao.php";
+require_once "../includes/logado.php";
+
+// Variáveis para mensagens
+$sucesso = "";
+$erro = "";
+$editando = NULL;
+
+// Pegar dados para edição
+if (isset($_GET["editar"])) {
+    $id = $_GET["editar"];
+    $sql = "SELECT * FROM cursos WHERE id = '$id'";
+    $res = mysqli_query($conexao, $sql);
+    $editando = mysqli_fetch_assoc($res);
+}
+
+// Excluir curso
+if (isset($_GET["excluir"])) {
+    $id = $_GET["excluir"];
+    $sql = "DELETE FROM cursos WHERE id = '$id'";
+    $res = mysqli_query($conexao, $sql);
+    
+    // Opcional: Redireciona de volta para a lista após excluir
+    header("Location: cursos.php");
+    exit;
+}
+
+// Verificar se o formulário foi enviado
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $id = $_POST["id"] ?? null;
+    $titulo  = $_POST["titulo"] ?? "";
+    $descricao  = $_POST["descricao"] ?? "";
+    $ativo = $_POST["ativo"] ?? 1; // Pega o status (1=Ativo, 0=Inativo). Padrão é 1.
+
+    // ==========================================
+    // LÓGICA DE UPLOAD DA IMAGEM DE CAPA
+    // ==========================================
+    // Se for edição, mantém a capa antiga por padrão para não apagar do banco
+    $nome_capa = $editando['capa'] ?? "";
+
+    // Verifica se o usuário enviou uma imagem nova no formulário
+    if (isset($_FILES['capa']) && $_FILES['capa']['size'] > 0) {
+        $pasta_destino = "../uploads/";
+        
+        // Pega a extensão da imagem (ex: jpg, png, webp)
+        $extensao = strtolower(pathinfo($_FILES['capa']['name'], PATHINFO_EXTENSION));
+        
+        // Cria um nome único com letras/números (para não substituir fotos com o mesmo nome)
+        $novo_nome_imagem = uniqid() . "." . $extensao;
+        
+        // Tenta mover a imagem do computador do usuário para a pasta uploads
+        if (move_uploaded_file($_FILES['capa']['tmp_name'], $pasta_destino . $novo_nome_imagem)) {
+            $nome_capa = $novo_nome_imagem; // Atualiza a variável com o novo nome
+        } else {
+            $erro = "Erro ao salvar a imagem. Verifique se a pasta 'uploads' existe.";
+        }
+    }
+
+    // Só avança para salvar no banco se a imagem não deu erro
+    if (empty($erro)) {
+        // Verificar se o curso já existe
+        if ($id) {
+            $sql_busca = "SELECT * FROM cursos WHERE titulo = '$titulo' AND id != '$id'";
+        } else {
+            $sql_busca = "SELECT * FROM cursos WHERE titulo = '$titulo'";
+        }
+        $resultado_busca = mysqli_query($conexao, $sql_busca);
+
+        if (mysqli_num_rows($resultado_busca) > 0) {
+            $erro = "Já existe um curso cadastrado com este título.";
+        } else {
+            
+            // Montar a instrução SQL com as colunas novas (capa e ativo)
+            if ($id) {
+                $sql_salvar = "UPDATE cursos SET 
+                               titulo = '$titulo', 
+                               descricao = '$descricao',
+                               capa = '$nome_capa',
+                               ativo = '$ativo'
+                               WHERE id = '$id'";
+            } else {
+                $sql_salvar = "INSERT INTO cursos (titulo, descricao, capa, ativo) 
+                               VALUES ('$titulo', '$descricao', '$nome_capa', '$ativo')";
+            }
+
+            // Executar a instrução
+            if (mysqli_query($conexao, $sql_salvar)) {
+                // Salva e "chuta" o usuário de volta para a listagem de cursos
+                header("Location: cursos.php");
+                exit;
+            } else {
+                $erro = "Erro ao salvar no banco: " . mysqli_error($conexao);
+            }
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Curso — Admin | EAD SENAI</title>
+    <title><?php echo $editando ? 'Editar Curso' : 'Novo Curso'; ?> — Admin | EAD SENAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -58,10 +161,10 @@
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
                 <a href="cursos.php" class="hover:text-senai-blue">Cursos</a>
                 <span></span>
-                <span class="text-gray-700 font-semibold">Editar Curso</span>
+                <span class="text-gray-700 font-semibold"><?php echo $editando ? 'Editar Curso' : 'Novo Curso'; ?></span>
             </div>
             <div class="flex items-center justify-between">
-                <h1 class="text-xl font-extrabold text-gray-800">Editar Curso</h1>
+                <h1 class="text-gray-700 font-semibold"><?php echo $editando ? 'Editar Curso' : 'Novo Curso'; ?></h1>
                 <!-- Para novo: "Cadastrar Novo Curso" sem o ?id na URL -->
                 <a href="cursos.php" class="text-sm text-gray-500 hover:text-senai-blue flex items-center gap-1 transition">← Voltar para Cursos</a>
             </div>
@@ -74,10 +177,10 @@
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-xl shadow-sm p-6">
 
-                        <form action="cursos.php" method="post" enctype="multipart/form-data">
+                        <form action="" method="POST" enctype="multipart/form-data">
 
                             <!-- Campo oculto: id do curso (edição) -->
-                            <input type="hidden" name="id" value="1">
+                            <input type="hidden" name="id" value="<?php echo $editando['id'] ?? ''; ?>" />
 
                             <!-- TÍTULO -->
                             <div class="mb-5">
@@ -87,7 +190,7 @@
                                     name="titulo"
                                     class="form-input"
                                     placeholder="Ex: HTML e CSS do Zero"
-                                    value="HTML e CSS do Zero"
+                                    value="<?php echo $editando['titulo'] ?? ''; ?>"
                                 >
                                 <p class="text-xs text-gray-400 mt-1">Use um título claro e direto. Máx. 150 caracteres.</p>
                             </div>
@@ -100,7 +203,7 @@
                                     rows="4"
                                     class="form-input resize-none"
                                     placeholder="Descreva o curso, o que o aluno vai aprender..."
-                                >Aprenda a criar páginas web profissionais do início ao fim, com projetos práticos e exemplos reais.</textarea>
+                                ><?php echo $editando['descricao'] ?? ''; ?></textarea>
                                 <p class="text-xs text-gray-400 mt-1">Seja claro sobre o conteúdo e o público-alvo do curso.</p>
                             </div>
 
@@ -126,11 +229,11 @@
                                 <label class="form-label">Status do Curso</label>
                                 <div class="flex gap-4">
                                     <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="ativo" value="1" checked class="accent-senai-green">
+                                        <input type="radio" name="ativo" value="1" <?php echo (!$editando || $editando['ativo'] == 1) ? 'checked' : ''; ?> class="accent-senai-green">
                                         <span class="text-sm text-gray-700">Ativo — Visível para os alunos</span>
                                     </label>
                                     <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="ativo" value="0" class="accent-gray-400">
+                                        <input type="radio" name="ativo" value="0" <?php echo ($editando && $editando['ativo'] == 0) ? 'checked' : ''; ?> class="accent-gray-400">
                                         <span class="text-sm text-gray-500">Inativo — Oculto para os alunos</span>
                                     </label>
                                 </div>
@@ -187,14 +290,16 @@
                     </div>
 
                     <!-- Aviso exclusão -->
-                    <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-                        <h4 class="font-bold text-senai-red text-sm mb-2">⚠ Zona de Perigo</h4>
-                        <p class="text-xs text-gray-600 mb-3">Excluir o curso também remove todos os módulos, aulas e inscrições vinculadas.</p>
-                        <button onclick="return confirm('Tem certeza? Esta ação não pode ser desfeita.')"
-                            class="w-full bg-senai-red text-white text-xs font-bold py-2 rounded-lg hover:bg-red-700 transition">
-                            🗑 Excluir este curso
-                        </button>
-                    </div>
+
+                    <?php if($editando): ?>
+                        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                            <h4 class="font-bold text-senai-red text-sm mb-2">⚠ Zona de Perigo</h4>
+                            <p class="text-xs text-gray-600 mb-3">Excluir o curso também remove todos os módulos, aulas e inscrições vinculadas.</p>
+                            <a href="?excluir=<?php echo $editando['id']; ?>" onclick="return confirm('Tem certeza? Esta ação não pode ser desfeita.')" class="block text-center w-full bg-senai-red text-white text-xs font-bold py-2 rounded-lg hover:bg-red-700 transition">
+                                🗑 Excluir este curso
+                            </a>
+                        </div>
+                        <?php endif; ?>
 
                 </div>
             </div>

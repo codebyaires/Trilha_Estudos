@@ -1,3 +1,23 @@
+<?php
+// Iniciar a sessão
+session_start();
+
+// Incluir o arquivo de conexão com o banco
+require_once "../includes/conexao.php";
+require_once "../includes/logado.php";
+
+$busca1= "SELECT titulo, curso_id FROM modulos WHERE id = '$modulo_id'";
+$resultado_final = mysqli_query($conexao, $busca1);
+$qtd_cursos = mysqli_fetch_assoc($resultado_final);
+
+$nome_do_modulo = $dados_modulo['titulo'] ?? "Módulo Desconhecido";
+$curso_id = $dados_modulo['curso_id'] ?? "";
+
+// 3. Buscar APENAS as aulas que pertencem a este módulo
+$sql_aulas = "SELECT * FROM aulas WHERE modulo_id = '$modulo_id' ORDER BY ordem ASC";
+$resultado_aulas = mysqli_query($conexao, $sql_aulas);
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

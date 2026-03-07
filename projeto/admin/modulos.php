@@ -1,9 +1,37 @@
+<?php
+// Iniciar a sessão
+session_start();
+
+// Incluir o arquivo de conexão com o banco
+require_once "../includes/conexao.php";
+require_once "../includes/logado.php";
+
+// Tentar pegar o ID do curso pela URL
+$curso_id = $_GET['curso_id'] ?? null;
+
+// Se não tiver curso_id na URL, chuta de volta pra lista de cursos
+if (!$curso_id) {
+    header("Location: cursos.php");
+    exit;
+}
+
+// Buscar o NOME do curso para colocar no título da página
+$sql_nome_curso = "SELECT titulo FROM cursos WHERE id = '$curso_id'";
+$res_nome_curso = mysqli_query($conexao, $sql_nome_curso);
+$dados_curso = mysqli_fetch_assoc($res_nome_curso);
+$nome_do_curso = $dados_curso['titulo'] ?? "Curso Desconhecido";
+
+// Buscar APENAS os módulos que pertencem a este curso específico
+$sql_modulos = "SELECT * FROM modulos WHERE curso_id = '$curso_id' ORDER BY ordem ASC";
+$resultado_modulos = mysqli_query($conexao, $sql_modulos);
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Módulos — Admin | EAD SENAI</title>
+    <title>Módulos: <?php echo $nome_do_curso; ?> — Admin | EAD SENAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,7 +51,6 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex">
 
-    <!-- SIDEBAR -->
     <aside class="w-56 bg-gray-900 min-h-screen flex flex-col flex-shrink-0">
         <div class="px-4 py-5 border-b border-gray-700">
             <p class="text-white font-extrabold text-base">🎓 EAD SENAI</p>
@@ -45,7 +72,7 @@
             <a href="aulas.php"   class="nav-link">🎬 <span>Aulas</span></a>
             <div class="pt-2 border-t border-gray-700 mt-2">
                 <a href="../meus_cursos.php" class="nav-link">👁 <span>Ver site</span></a>
-                <a href="../login.php"       class="nav-link text-red-400">🚪 <span>Sair</span></a>
+                <a href="../login.php"       class="nav-link text-red-400 hover:text-red-300">🚪 <span>Sair</span></a>
             </div>
         </nav>
     </aside>
@@ -55,105 +82,85 @@
             <div>
                 <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
                     <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> ›
-                    <span class="text-gray-700 font-semibold">HTML e CSS do Zero</span> ›
+                    <span class="text-gray-700 font-semibold"><?php echo $nome_do_curso; ?></span> ›
                     <span>Módulos</span>
                 </div>
-                <h1 class="text-xl font-extrabold text-gray-800">Gerenciar Módulos</h1>
+                <h1 class="text-xl font-extrabold text-gray-800">Módulos: <?php echo $nome_do_curso; ?></h1>
             </div>
-            <a href="modulo_form.php" class="bg-senai-green text-white font-bold px-4 py-2.5 rounded-lg text-sm hover:bg-green-600 transition">+ Novo Módulo</a>
+            <a href="cursos.php" class="bg-gray-100 text-gray-600 font-bold px-4 py-2.5 rounded-lg text-sm hover:bg-gray-200 transition">← Voltar aos Cursos</a>
         </div>
 
         <div class="p-6 flex-1">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-                <!-- LISTA DE MÓDULOS -->
                 <div class="space-y-3">
-                    <h2 class="font-bold text-gray-700 text-sm">Módulos do Curso</h2>
+                    <h2 class="font-bold text-gray-700 text-sm">Módulos Cadastrados</h2>
 
-                    <!-- Módulo 1 -->
+                    <?php 
+                    // Se não tiver nenhum módulo, exibe uma mensagem
+                    if (mysqli_num_rows($resultado_modulos) == 0): 
+                    ?>
+                        <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-8 text-center">
+                            <p class="text-gray-500 text-sm">Nenhum módulo cadastrado neste curso.</p>
+                            <p class="text-gray-400 text-xs mt-1">Use o formulário ao lado para criar o primeiro.</p>
+                        </div>
+                    <?php 
+                    endif; 
+                    
+                    // Loop dos Módulos
+                    while ($modulo = mysqli_fetch_assoc($resultado_modulos)): 
+                    ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                         <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 bg-senai-blue rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">1</div>
+                            <div class="w-8 h-8 bg-senai-blue rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                                <?php echo $modulo['ordem']; ?>
+                            </div>
                             <div class="flex-1">
-                                <p class="font-semibold text-gray-800">Introdução ao HTML</p>
-                                <p class="text-xs text-gray-400">3 aulas cadastradas</p>
+                                <p class="font-semibold text-gray-800"><?php echo $modulo['titulo']; ?></p>
+                                <p class="text-xs text-gray-400">0 aulas cadastradas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between border-t border-gray-50 pt-3">
+                            <div class="flex gap-2">
+                                <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded" title="Ainda não implementado">↑ Subir</button>
+                                <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded" title="Ainda não implementado">↓ Descer</button>
                             </div>
                             <div class="flex gap-1.5">
-                                <a href="aulas.php" class="bg-senai-blue text-white text-xs px-2.5 py-1.5 rounded-md">🎬 Aulas</a>
-                                <a href="modulo_form.php" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md">✏</a>
-                                <button class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md">🗑</button>
+                                <a href="aulas.php?modulo_id=<?php echo $modulo['id']; ?>" class="bg-senai-blue text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-senai-blue-dark transition">🎬 Aulas</a>
+                                <a href="modulo_form.php?editar=<?php echo $modulo['id']; ?>" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-yellow-600 transition">✏</a>
+                                <a href="modulo_form.php?excluir=<?php echo $modulo['id']; ?>" onclick="return confirm('Excluir este módulo?')" class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-red-700 transition">🗑</a>
                             </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded">↑ Subir</button>
-                            <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded">↓ Descer</button>
                         </div>
                     </div>
-
-                    <!-- Módulo 2 -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 bg-senai-blue rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">2</div>
-                            <div class="flex-1">
-                                <p class="font-semibold text-gray-800">Estilizando com CSS</p>
-                                <p class="text-xs text-gray-400">3 aulas cadastradas</p>
-                            </div>
-                            <div class="flex gap-1.5">
-                                <a href="aulas.php" class="bg-senai-blue text-white text-xs px-2.5 py-1.5 rounded-md">🎬 Aulas</a>
-                                <a href="modulo_form.php" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md">✏</a>
-                                <button class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md">🗑</button>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded">↑ Subir</button>
-                            <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded">↓ Descer</button>
-                        </div>
-                    </div>
-
-                    <!-- Módulo 3 -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 bg-senai-blue rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">3</div>
-                            <div class="flex-1">
-                                <p class="font-semibold text-gray-800">Projeto Final</p>
-                                <p class="text-xs text-gray-400">3 aulas cadastradas</p>
-                            </div>
-                            <div class="flex gap-1.5">
-                                <a href="aulas.php" class="bg-senai-blue text-white text-xs px-2.5 py-1.5 rounded-md">🎬 Aulas</a>
-                                <a href="modulo_form.php" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md">✏</a>
-                                <button class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md">🗑</button>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded">↑ Subir</button>
-                            <button class="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 px-2 py-1 rounded">↓ Descer</button>
-                        </div>
-                    </div>
+                    <?php endwhile; ?>
                 </div>
 
-                <!-- FORMULÁRIO RÁPIDO -->
-                <div class="bg-white rounded-xl shadow-sm p-5">
-                    <h2 class="font-bold text-gray-700 text-sm mb-4">Adicionar Novo Módulo</h2>
-                    <form action="modulos.php" method="post">
-                        <input type="hidden" name="curso_id" value="1">
+                <div class="bg-white rounded-xl shadow-sm p-5 sticky top-6">
+                    <h2 class="font-bold text-gray-700 text-sm mb-4">Adicionar Novo Módulo Rápido</h2>
+                    
+                    <form action="modulo_form.php" method="post">
+                        
+                        <input type="hidden" name="curso_id" value="<?php echo $curso_id; ?>">
+                        
+                        <input type="hidden" name="id" value="">
+                        
                         <div class="mb-4">
                             <label class="form-label">Título do Módulo *</label>
-                            <input type="text" name="titulo" class="form-input" placeholder="Ex: Introdução ao HTML">
+                            <input type="text" name="titulo" class="form-input" placeholder="Ex: Introdução ao HTML" required>
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Descrição (opcional)</label>
                             <textarea name="descricao" rows="3" class="form-input resize-none" placeholder="Breve descrição do módulo..."></textarea>
                         </div>
                         <div class="mb-5">
-                            <label class="form-label">Ordem</label>
-                            <input type="number" name="ordem" class="form-input" value="4" min="1">
+                            <label class="form-label">Ordem de Exibição</label>
+                            <input type="number" name="ordem" class="form-input" value="1" min="1">
                         </div>
-                        <div class="flex gap-2">
-                            <button type="submit" class="bg-senai-blue text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-senai-blue-dark transition">
-                                Salvar Módulo
-                            </button>
-                            <a href="cursos.php" class="bg-gray-100 text-gray-600 font-semibold px-5 py-2.5 rounded-lg text-sm hover:bg-gray-200 transition">Cancelar</a>
-                        </div>
+                        
+                        <button type="submit" class="w-full bg-senai-blue text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-senai-blue-dark transition">
+                            💾 Criar Módulo
+                        </button>
                     </form>
                 </div>
 

@@ -1,9 +1,38 @@
+<?php
+// Iniciar a sessão
+session_start();
+
+// Incluir o arquivo de conexão com o banco
+require_once "../includes/conexao.php";
+require_once "../includes/logado.php";
+
+// 1. Pegar o ID do módulo pela URL
+$modulo_id = $_GET['modulo_id'] ?? null;
+
+if (!$modulo_id) {
+    header("Location: cursos.php");
+    exit;
+}
+
+// 2. Buscar o nome do módulo (e o ID do curso para o botão de voltar)
+$sql_info_modulo = "SELECT titulo, curso_id FROM modulos WHERE id = '$modulo_id'";
+$res_info_modulo = mysqli_query($conexao, $sql_info_modulo);
+$dados_modulo = mysqli_fetch_assoc($res_info_modulo);
+
+$nome_do_modulo = $dados_modulo['titulo'] ?? "Módulo Desconhecido";
+$curso_id = $dados_modulo['curso_id'] ?? "";
+
+// 3. Buscar APENAS as aulas que pertencem a este módulo
+$sql_aulas = "SELECT * FROM aulas WHERE modulo_id = '$modulo_id' ORDER BY ordem ASC";
+$resultado_aulas = mysqli_query($conexao, $sql_aulas);
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Aulas — Admin | EAD SENAI</title>
+    <title>Aulas: <?php echo $nome_do_modulo; ?> — Admin | EAD SENAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,7 +52,6 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex">
 
-    <!-- SIDEBAR -->
     <aside class="w-56 bg-gray-900 min-h-screen flex flex-col flex-shrink-0">
         <div class="px-4 py-5 border-b border-gray-700">
             <p class="text-white font-extrabold text-base">🎓 EAD SENAI</p>
@@ -54,68 +82,69 @@
         <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
             <div>
                 <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                    <a href="cursos.php" class="hover:text-senai-blue">Cursos</a>
-                    <a href="modulos.php" class="hover:text-senai-blue">Módulos</a>
-                    <span class="text-gray-700 font-semibold">Introdução ao HTML</span>
-                    <span>Aulas</span>
+                    <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> ›
+                    <a href="modulos.php?curso_id=<?php echo $curso_id; ?>" class="hover:text-senai-blue">Módulos</a> ›
+                    <span class="text-gray-700 font-semibold"><?php echo $nome_do_modulo; ?></span>
                 </div>
-                <h1 class="text-xl font-extrabold text-gray-800">Gerenciar Aulas</h1>
+                <h1 class="text-xl font-extrabold text-gray-800">Aulas do Módulo</h1>
             </div>
-            <a href="aula_form.php" class="bg-senai-green text-white font-bold px-4 py-2.5 rounded-lg text-sm hover:bg-green-600 transition">+ Nova Aula</a>
+            <a href="modulos.php?curso_id=<?php echo $curso_id; ?>" class="bg-gray-100 text-gray-600 font-bold px-4 py-2.5 rounded-lg text-sm hover:bg-gray-200 transition">← Voltar aos Módulos</a>
         </div>
 
         <div class="p-6 flex-1">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-                <!-- LISTA DE AULAS -->
                 <div class="space-y-3">
-                    <h2 class="font-bold text-gray-700 text-sm">Aulas do Módulo: Introdução ao HTML</h2>
+                    <h2 class="font-bold text-gray-700 text-sm">Aulas: <?php echo $nome_do_modulo; ?></h2>
 
+                    <?php 
+                    // Se não tiver aulas cadastradas
+                    if(mysqli_num_rows($resultado_aulas) == 0): ?>
+                        <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-8 text-center">
+                            <p class="text-gray-500 text-sm">Nenhuma aula cadastrada neste módulo.</p>
+                            <p class="text-gray-400 text-xs mt-1">Preencha o formulário ao lado para adicionar.</p>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php 
+                    // O Laço mágico para listar as aulas
+                    while ($aula = mysqli_fetch_assoc($resultado_aulas)): 
+                    ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-senai-red/10 rounded-lg flex items-center justify-center text-senai-red text-sm flex-shrink-0">1</div>
+                        <div class="w-8 h-8 bg-senai-red/10 rounded-lg flex items-center justify-center text-senai-red text-sm font-bold flex-shrink-0">
+                            <?php echo $aula['ordem']; ?>
+                        </div>
                         <div class="flex-1">
-                            <p class="font-semibold text-gray-800 text-sm">O que é HTML?</p>
-                            <p class="text-xs text-gray-400">⏱ 08:20 &nbsp;·&nbsp; <span class="text-blue-500 underline text-xs">ver vídeo</span></p>
+                            <p class="font-semibold text-gray-800 text-sm"><?php echo $aula['titulo']; ?></p>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                ⏱ <?php echo !empty($aula['duracao']) ? $aula['duracao'] : '00:00'; ?> &nbsp;·&nbsp; 
+                                <?php if(!empty($aula['video_url'])): ?>
+                                    <a href="<?php echo $aula['video_url']; ?>" target="_blank" class="text-blue-500 underline text-xs">ver vídeo</a>
+                                <?php else: ?>
+                                    <span class="text-gray-400 text-xs">Sem vídeo</span>
+                                <?php endif; ?>
+                            </p>
                         </div>
                         <div class="flex gap-1.5">
-                            <a href="aula_form.php" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md">✏ Editar</a>
-                            <button class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md">🗑</button>
+                            <a href="aula_form.php?editar=<?php echo $aula['id']; ?>" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-yellow-600">✏ Editar</a>
+                            <a href="aula_form.php?excluir=<?php echo $aula['id']; ?>" onclick="return confirm('Tem certeza que deseja excluir esta aula?')" class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-red-700">🗑</a>
                         </div>
                     </div>
+                    <?php endwhile; ?>
 
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-senai-red/10 rounded-lg flex items-center justify-center text-senai-red text-sm flex-shrink-0">2</div>
-                        <div class="flex-1">
-                            <p class="font-semibold text-gray-800 text-sm">Estrutura básica de uma página</p>
-                            <p class="text-xs text-gray-400">⏱ 12:45 &nbsp;·&nbsp; <span class="text-blue-500 underline text-xs">ver vídeo</span></p>
-                        </div>
-                        <div class="flex gap-1.5">
-                            <a href="aula_form.php" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md">✏ Editar</a>
-                            <button class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md">🗑</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-senai-red/10 rounded-lg flex items-center justify-center text-senai-red text-sm flex-shrink-0">3</div>
-                        <div class="flex-1">
-                            <p class="font-semibold text-gray-800 text-sm">Tags Essenciais do HTML</p>
-                            <p class="text-xs text-gray-400">⏱ 15:10 &nbsp;·&nbsp; <span class="text-blue-500 underline text-xs">ver vídeo</span></p>
-                        </div>
-                        <div class="flex gap-1.5">
-                            <a href="aula_form.php" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md">✏ Editar</a>
-                            <button class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md">🗑</button>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- FORMULÁRIO RÁPIDO DE AULA -->
-                <div class="bg-white rounded-xl shadow-sm p-5">
-                    <h2 class="font-bold text-gray-700 text-sm mb-4">Adicionar Nova Aula</h2>
-                    <form action="aulas.php" method="post">
-                        <input type="hidden" name="modulo_id" value="1">
+                <div class="bg-white rounded-xl shadow-sm p-5 sticky top-6">
+                    <h2 class="font-bold text-gray-700 text-sm mb-4">Adicionar Nova Aula Rápida</h2>
+                    
+                    <form action="aula_form.php" method="POST">
+                        
+                        <input type="hidden" name="modulo_id" value="<?php echo $modulo_id; ?>">
+                        <input type="hidden" name="id" value="">
+
                         <div class="mb-4">
                             <label class="form-label">Título da Aula *</label>
-                            <input type="text" name="titulo" class="form-input" placeholder="Ex: Introdução às Tabelas HTML">
+                            <input type="text" name="titulo" class="form-input" placeholder="Ex: Introdução às Tabelas HTML" required>
                         </div>
                         <div class="mb-4">
                             <label class="form-label">URL do Vídeo</label>
@@ -131,15 +160,13 @@
                             <textarea name="descricao" rows="3" class="form-input resize-none" placeholder="Breve descrição do conteúdo da aula..."></textarea>
                         </div>
                         <div class="mb-5">
-                            <label class="form-label">Ordem</label>
-                            <input type="number" name="ordem" class="form-input" value="4" min="1">
+                            <label class="form-label">Ordem de Exibição</label>
+                            <input type="number" name="ordem" class="form-input" value="1" min="1">
                         </div>
-                        <div class="flex gap-2">
-                            <button type="submit" class="bg-senai-blue text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-senai-blue-dark transition">
-                                Salvar Aula
-                            </button>
-                            <a href="modulos.php" class="bg-gray-100 text-gray-600 font-semibold px-5 py-2.5 rounded-lg text-sm hover:bg-gray-200 transition">Cancelar</a>
-                        </div>
+                        
+                        <button type="submit" class="w-full bg-senai-blue text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-senai-blue-dark transition">
+                            💾 Criar Aula
+                        </button>
                     </form>
                 </div>
 

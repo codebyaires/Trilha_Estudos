@@ -4,13 +4,13 @@ session_start();
 
 // Incluir o arquivo de conexão com o banco
 require_once "../includes/conexao.php";
-
 require_once "../includes/logado.php";
 
 // Variáveis para mensagens
 $sucesso = "";
 $erro = "";
 $editando = NULL;
+
 if (isset($_GET["editar"])) {
     $id = $_GET["editar"];
     $sql = "SELECT * FROM aulas WHERE id = '$id'";
@@ -18,10 +18,23 @@ if (isset($_GET["editar"])) {
     $editando = mysqli_fetch_assoc($res);
 }
 
+// Lógica de Excluir COM Redirecionamento
 if (isset($_GET["excluir"])) {
     $id = $_GET["excluir"];
+    
+    // Descobrir qual é o módulo dessa aula ANTES de apagar, para poder voltar para a página certa
+    $sql_busca_mod = "SELECT modulo_id FROM aulas WHERE id = '$id'";
+    $res_busca_mod = mysqli_query($conexao, $sql_busca_mod);
+    $aula_excluida = mysqli_fetch_assoc($res_busca_mod);
+    $mod_id_voltar = $aula_excluida['modulo_id'] ?? '';
+
+    // Apaga a aula
     $sql = "DELETE FROM aulas WHERE id = '$id'";
     $res = mysqli_query($conexao, $sql);
+
+    // Redireciona de volta para a lista de aulas daquele módulo
+    header("Location: aulas.php?modulo_id=" . $mod_id_voltar);
+    exit;
 }
 
 // Verificar se o formulário de cadastro foi enviado
@@ -29,19 +42,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $id = $_POST["id"] ?? null;
     $modulo_id = $_POST["modulo_id"] ?? "";
-    $titulo  = $_POST["titulo"]?? "";
-    $video_url  = $_POST["video_url"]?? "";
-    $duracao  = $_POST["duracao"]?? "";
-    $descricao  = $_POST["descricao"]?? "";
-    $ordem  = $_POST["ordem"]?? "";
+    $titulo  = $_POST["titulo"] ?? "";
+    $video_url  = $_POST["video_url"] ?? "";
+    $duracao  = $_POST["duracao"] ?? "";
+    $descricao  = $_POST["descricao"] ?? "";
+    $ordem  = $_POST["ordem"] ?? "";
     
-
-// Verificar se a aula já existe (para não ter títulos repetidos)
+    // Verificar se a aula já existe (para não ter títulos repetidos)
     if ($id) {
-        // Se tem ID, estamos editando. Procura se existe OUTRA aula com esse nome.
         $sql_busca = "SELECT * FROM aulas WHERE titulo = '$titulo' AND id != '$id'";
     } else {
-        // Se não tem ID, é aula nova. Procura em tudo.
         $sql_busca = "SELECT * FROM aulas WHERE titulo = '$titulo'";
     }
     $resultado_busca = mysqli_query($conexao, $sql_busca);
@@ -53,7 +63,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         
         // Montar a instrução SQL certa UPDATE ou INSERT
         if ($id) {
-            // Tem ID: Atualiza a aula existente
             $sql_salvar = "UPDATE aulas SET 
                            modulo_id = '$modulo_id', 
                            titulo = '$titulo', 
@@ -63,31 +72,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                            ordem = '$ordem' 
                            WHERE id = '$id'";
         } else {
-            // Não tem ID: Insere uma aula nova
             $sql_salvar = "INSERT INTO aulas (modulo_id, titulo, video_url, duracao, descricao, ordem) 
                            VALUES ('$modulo_id', '$titulo', '$video_url', '$duracao', '$descricao', '$ordem')";
         }
 
         // Executar a instrução no banco de dados
         if (mysqli_query($conexao, $sql_salvar)) {
-            $sucesso = "Aula salva com sucesso!";
-
-            // Se for uma edição, recarrega os dados para a tela não ficar desatualizada
-            if ($id) {
-                $sql_recarga = "SELECT * FROM aulas WHERE id = '$id'";
-                $res_recarga = mysqli_query($conexao, $sql_recarga);
-                $editando = mysqli_fetch_assoc($res_recarga);
-            }
+            // REDIRECIONA PARA A TELA DE AULAS LEVANDO O ID DO MÓDULO!
+            header("Location: aulas.php?modulo_id=" . $modulo_id);
+            exit;
         } else {
-            // Se o MySQL falhar (ex: nome de coluna errado), ele avisa o motivo
             $erro = "Erro ao salvar no banco: " . mysqli_error($conexao);
         }
     }
 }
-
-// Buscar todas as aulas para listar
-$sql = "SELECT modulo_id, titulo, video_url, duracao, descricao, ordem FROM aulas ORDER BY id DESC";
-$produto = mysqli_query($conexao, $sql);
 
 // Buscar os módulos para o campo <select>
 $sql_modulos = "SELECT id, titulo FROM modulos ORDER BY titulo ASC";
@@ -99,7 +97,7 @@ $res_modulos = mysqli_query($conexao, $sql_modulos);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Aula — Admin | EAD SENAI</title>
+    <title><?php echo $editando ? 'Editar Aula' : 'Nova Aula'; ?> — Admin | EAD SENAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -133,24 +131,23 @@ $res_modulos = mysqli_query($conexao, $sql_modulos);
 
         <main class="flex-1 flex flex-col">
           <?php if (!empty($sucesso)): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded m-6 mb-0">
                 <?php echo $sucesso; ?>
             </div>
         <?php endif; ?>
 
         <?php if (!empty($erro)): ?>
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-6 mb-0">
                 <?php echo $erro; ?>
             </div>
         <?php endif; ?>
 
-        <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="bg-white border-b border-gray-200 px-6 py-4 mt-6">
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                <a href="modulos.php" class="hover:text-senai-blue">Módulos</a>
-                <a href="aulas.php" class="hover:text-senai-blue">Aulas</a> 
+                <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> ›
                 <span class="text-gray-700 font-semibold"><?php echo $editando ? 'Editar Aula' : 'Nova Aula'; ?></span>
             </div>
-            <h1 class="text-gray-700 font-semibold"><?php echo $editando ? 'Editar Aula' : 'Nova Aula'; ?><h1>
+            <h1 class="text-xl font-extrabold text-gray-800"><?php echo $editando ? 'Editar Aula' : 'Nova Aula'; ?></h1>
         </div>
 
         <div class="p-6 flex-1 max-w-xl">
@@ -163,15 +160,13 @@ $res_modulos = mysqli_query($conexao, $sql_modulos);
                         <select name="modulo_id" class="form-input" required>
                             <option value="">Selecione um módulo...</option>
                             <?php 
-                         // Loop para imprimir cada módulo encontrado no banco
                              while ($modulo = mysqli_fetch_assoc($res_modulos)): 
-                         // Verifica se está editando e se este é o módulo selecionado
-                             $selecionado = ($editando && $editando['modulo_id'] == $modulo['id']) ? 'selected' : '';
+                                $selecionado = ($editando && $editando['modulo_id'] == $modulo['id']) ? 'selected' : '';
                              ?>
                              <option value="<?php echo $modulo['id']; ?>" <?php echo $selecionado; ?>>
                                 <?php echo $modulo['titulo']; ?>
-                            </option>
-                            <?php endwhile; ?>
+                             </option>
+                             <?php endwhile; ?>
                         </select>
                     </div>
 
@@ -186,7 +181,7 @@ $res_modulos = mysqli_query($conexao, $sql_modulos);
                     </div>
                     <div class="mb-4">
                         <label class="form-label">Duração</label>
-                        <input type="text" name="duracao" value="<?php echo $editando['duracao'] ?? ''; ?>" class="form-input">
+                        <input type="text" name="duracao" value="<?php echo $editando['duracao'] ?? ''; ?>" class="form-input" placeholder="Ex: 15:10">
                     </div>
                     <div class="mb-4">
                         <label class="form-label">Descrição (opcional)</label>
@@ -194,11 +189,13 @@ $res_modulos = mysqli_query($conexao, $sql_modulos);
                     </div>
                     <div class="mb-5">
                         <label class="form-label">Ordem</label>
-                        <input type="number" name="ordem" value="<?php echo $editando['ordem'] ?? ''; ?>" class="form-input">
+                        <input type="number" name="ordem" value="<?php echo $editando['ordem'] ?? '1'; ?>" class="form-input">
                     </div>
                     <div class="flex gap-2">
                         <button type="submit" class="bg-senai-blue text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-senai-blue-dark transition">💾 Salvar Aula</button>
-                        <a href="aulas.php" class="bg-gray-100 text-gray-600 font-semibold px-5 py-2.5 rounded-lg text-sm hover:bg-gray-200 transition">Cancelar</a>
+                        
+                        <?php $link_cancelar = $editando ? "aulas.php?modulo_id=" . $editando['modulo_id'] : "cursos.php"; ?>
+                        <a href="<?php echo $link_cancelar; ?>" class="bg-gray-100 text-gray-600 font-semibold px-5 py-2.5 rounded-lg text-sm hover:bg-gray-200 transition">Cancelar</a>
                     </div>
                 </form>
             </div>
