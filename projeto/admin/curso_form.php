@@ -257,26 +257,42 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="space-y-4">
 
                     <!-- Módulos do curso -->
+
+                    <?php if ($editando): ?>
                     <div class="bg-white rounded-xl shadow-sm p-5">
                         <h3 class="font-bold text-gray-700 text-sm mb-3">Módulos deste Curso</h3>
+
+                        <?php
+                        // Pega os dados que foram adicionados no curso pelo '$editando' e traz para uma variavel local
+                        $curso_id_atual = $editando['id'];
+
+                        // É o comando para o banco de dados 
+                        $consulta_sidebar = "SELECT id, titulo, ordem FROM modulos WHERE curso_id = '$curso_id_atual' ORDER BY ordem ASC";
+                        $sidebar_modulos = mysqli_query($conexao, $consulta_sidebar);
+                        ?>
                         <ul class="space-y-2 text-sm">
-                            <li class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                <span class="text-gray-700">1. Introdução ao HTML</span>
-                                <span class="text-xs text-gray-400">3 aulas</span>
-                            </li>
-                            <li class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                <span class="text-gray-700">2. Estilizando com CSS</span>
-                                <span class="text-xs text-gray-400">3 aulas</span>
-                            </li>
-                            <li class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                <span class="text-gray-700">3. Projeto Final</span>
-                                <span class="text-xs text-gray-400">3 aulas</span>
-                            </li>
-                        </ul>
-                        <a href="modulos.php" class="block mt-3 text-center border border-senai-blue text-senai-blue text-xs font-semibold py-2 rounded-lg hover:bg-blue-50 transition">
+                         <?php 
+                              while ($mod = mysqli_fetch_assoc($sidebar_modulos)): 
+                              // 1. Pega o ID deste módulo que está passando no loop agora
+                              $mod_id = $mod['id'];
+                              // 2. Faz a contagem de aulas SÓ para este módulo
+                              $sql_qtd_aulas = "SELECT COUNT(id) AS total FROM aulas WHERE modulo_id = '$mod_id'";
+                              $res_qtd_aulas = mysqli_query($conexao, $sql_qtd_aulas);
+                              $qtd_aulas = mysqli_fetch_assoc($res_qtd_aulas)['total'];
+                          ?>
+                    <li class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700 text-sm font-medium"><?php echo $mod['ordem']; ?>. <?php echo $mod['titulo']; ?></span>
+                
+                             <span class="text-xs text-gray-400"><?php echo $qtd_aulas; ?> aulas</span>
+                    </li>     
+                                 <?php endwhile; ?>
+                         </ul>
+
+                        <a href="modulos.php?curso_id=<?php echo $curso_id_atual; ?>" class="block mt-3 text-center border border-senai-blue text-senai-blue text-xs font-semibold py-2 rounded-lg hover:bg-blue-50 transition">
                             Gerenciar Módulos
                         </a>
                     </div>
+                    <?php endif; ?>
 
                     <!-- Dicas -->
                     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
