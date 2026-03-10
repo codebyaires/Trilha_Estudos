@@ -24,6 +24,7 @@ $nome_do_curso = $dados_curso['titulo'] ?? "Curso Desconhecido";
 // Buscar APENAS os módulos que pertencem a este curso específico
 $sql_modulos = "SELECT * FROM modulos WHERE curso_id = '$curso_id' ORDER BY ordem ASC";
 $resultado_modulos = mysqli_query($conexao, $sql_modulos);
+
 ?>
 
 <!DOCTYPE html>
@@ -81,8 +82,8 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
         <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
             <div>
                 <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                    <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> ›
-                    <span class="text-gray-700 font-semibold"><?php echo $nome_do_curso; ?></span> ›
+                    <a href="cursos.php" class="hover:text-senai-blue">Cursos</a>
+                    <span class="text-gray-700 font-semibold"><?php echo $nome_do_curso; ?></span>
                     <span>Módulos</span>
                 </div>
                 <h1 class="text-xl font-extrabold text-gray-800">Módulos: <?php echo $nome_do_curso; ?></h1>
@@ -109,6 +110,14 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
                     
                     // Loop dos Módulos
                     while ($modulo = mysqli_fetch_assoc($resultado_modulos)): 
+                        
+                        // 1. Pega o ID deste módulo que está passando no loop agora
+                        $id_deste_modulo = $modulo['id'];
+
+                        // 2. Faz a contagem de aulas SÓ para este módulo
+                        $sql_qtd_aulas = "SELECT COUNT(id) AS total FROM aulas WHERE modulo_id = '$id_deste_modulo'";
+                        $res_qtd_aulas = mysqli_query($conexao, $sql_qtd_aulas);
+                        $qtd_aulas = mysqli_fetch_assoc($res_qtd_aulas)['total'];
                     ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                         <div class="flex items-center gap-3 mb-3">
@@ -117,7 +126,9 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
                             </div>
                             <div class="flex-1">
                                 <p class="font-semibold text-gray-800"><?php echo $modulo['titulo']; ?></p>
-                                <p class="text-xs text-gray-400">0 aulas cadastradas</p>
+                                
+                                <p class="text-xs text-gray-400"><?php echo $qtd_aulas; ?> aulas cadastradas</p> 
+                                
                             </div>
                         </div>
                         

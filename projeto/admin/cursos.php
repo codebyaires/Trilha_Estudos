@@ -103,49 +103,75 @@ $total_cursos = mysqli_num_rows($resultado_cursos);
                     </thead>
                     <tbody class="divide-y divide-gray-100">
 
-                        <!-- CURSO 1 -->
-                        <?php while ($curso = mysqli_fetch_assoc($resultado_cursos)): ?>
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-4 py-3 text-gray-400 font-mono text-xs"><?php echo $curso['id']; ?></td>
-                            <td class="px-4 py-3">
-                            <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span class="text-lg">🌐</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800"><?php echo $curso['titulo']; ?></p>
-                            <p class="text-xs text-gray-400 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]" title="<?php echo $curso['descricao']; ?>">
-                                <?php echo $curso['descricao']; ?>
-                            </p>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-4 py-3 text-center text-gray-600 font-semibold">0</td>
-                <td class="px-4 py-3 text-center text-gray-600 font-semibold">0</td>
-                <td class="px-4 py-3 text-center text-gray-600 font-semibold">0</td>
-    
-                <td class="px-4 py-3 text-center">
-                    <?php if ($curso['ativo'] == 1): ?>
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">Ativo</span>
-                        <?php else: ?>
-                            <span class="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-full">Inativo</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="px-4 py-3 text-center text-xs text-gray-400">
-                            <?php echo date('d/m/Y', strtotime($curso['criado_em'])); ?>
-                         </td>
-    
-                        <td class="px-4 py-3 text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                              <a href="modulos.php?curso_id=<?php echo $curso['id']; ?>" class="bg-senai-blue text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-senai-blue-dark transition" title="Ver Módulos">📦 Módulos</a>
-                              <a href="curso_form.php?editar=<?php echo $curso['id']; ?>" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-yellow-600 transition" title="Editar">✏ Editar</a>
-                              <a href="curso_form.php?excluir=<?php echo $curso['id']; ?>" onclick="return confirm('Excluir este curso?')" class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-red-700 transition" title="Excluir">🗑</a>
-                            </div>
-                        </td>
-                     </tr>
-                        <?php endwhile; ?>
+    <?php 
+    while ($curso = mysqli_fetch_assoc($resultado_cursos)): 
+        $id_do_curso = $curso['id'];
 
-                    </tbody>
+        // Contar os módulos deste curso
+        $sql_qtd_mod = "SELECT COUNT(id) AS total_modulos FROM modulos WHERE curso_id = '$id_do_curso'";
+        $res_qtd_mod = mysqli_query($conexao, $sql_qtd_mod);
+        $qtd_modulos = mysqli_fetch_assoc($res_qtd_mod)['total_modulos'];
+
+        // Contar as aulas deste curso (usando um JOIN super eficiente)
+        // Isso conta todas as aulas que estão em módulos que pertencem a este curso
+        $sql_qtd_aulas = "SELECT COUNT(aulas.id) AS total_aulas 
+                          FROM aulas 
+                          INNER JOIN modulos ON aulas.modulo_id = modulos.id 
+                          WHERE modulos.curso_id = '$id_do_curso'";
+        $res_qtd_aulas = mysqli_query($conexao, $sql_qtd_aulas);
+        $qtd_aulas = mysqli_fetch_assoc($res_qtd_aulas)['total_aulas'];
+    ?>
+    <tr class="hover:bg-gray-50 transition">
+        
+        <td class="px-4 py-3 text-gray-400 font-mono text-xs"><?php echo $curso['id']; ?></td>
+        
+        <td class="px-4 py-3">
+            <div class="flex items-center gap-3">
+                <?php if (!empty($curso['capa'])): ?>
+                    <img src="../uploads/<?php echo $curso['capa']; ?>" alt="Capa" class="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-200">
+                <?php else: ?>
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="text-lg">🌐</span>
+                    </div>
+                <?php endif; ?>
+                <div>
+                    <p class="font-semibold text-gray-800"><?php echo $curso['titulo']; ?></p>
+                    <p class="text-xs text-gray-400 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]" title="<?php echo $curso['descricao']; ?>">
+                        <?php echo $curso['descricao']; ?>
+                    </p>
+                </div>
+            </div>
+        </td>
+
+        <td class="px-4 py-3 text-center text-gray-600 font-semibold"><?php echo $qtd_modulos; ?></td>
+        <td class="px-4 py-3 text-center text-gray-600 font-semibold"><?php echo $qtd_aulas; ?></td>
+        
+        <td class="px-4 py-3 text-center text-gray-600 font-semibold">0</td>
+
+        <td class="px-4 py-3 text-center">
+            <?php if ($curso['ativo'] == 1): ?>
+                <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">Ativo</span>
+            <?php else: ?>
+                <span class="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-full">Inativo</span>
+            <?php endif; ?>
+        </td>
+
+        <td class="px-4 py-3 text-center text-xs text-gray-400">
+            <?php echo date('d/m/Y', strtotime($curso['criado_em'])); ?>
+        </td>
+
+        <td class="px-4 py-3 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+                <a href="modulos.php?curso_id=<?php echo $curso['id']; ?>" class="bg-senai-blue text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-senai-blue-dark transition" title="Ver Módulos">📦 Módulos</a>
+                <a href="curso_form.php?editar=<?php echo $curso['id']; ?>" class="bg-yellow-500 text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-yellow-600 transition" title="Editar">✏ Editar</a>
+                <a href="curso_form.php?excluir=<?php echo $curso['id']; ?>" onclick="return confirm('Excluir este curso?')" class="bg-senai-red text-white text-xs px-2.5 py-1.5 rounded-md hover:bg-red-700 transition" title="Excluir">🗑</a>
+            </div>
+        </td>
+        
+    </tr>
+    <?php endwhile; ?>
+
+</tbody>
                 </table>
 
                 <!-- RODAPÉ DA TABELA -->

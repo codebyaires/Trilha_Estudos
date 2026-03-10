@@ -8,7 +8,7 @@
 $servidor = "localhost";
 $usuario  = "root";
 $senha    = "";
-$banco    = "ead_senai";
+$banco    = "trilha_estudos";
 
 // Criar a conexão usando mysqli
 $conexao = mysqli_connect($servidor, $usuario, $senha, $banco);

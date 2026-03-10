@@ -1,10 +1,10 @@
 -- ============================================================
 -- EAD SENAI — Script do Banco de Dados
 -- Disciplina : Desenvolvimento Web | Aula 6
--- Banco      : ead_senai
+-- Banco      : trilha_estudos
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS ead_senai
+CREATE DATABASE IF NOT EXISTS trilha_estudos
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 

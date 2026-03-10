@@ -2,20 +2,28 @@
 // Iniciar a sessão
 session_start();
 
-// Incluir o arquivo de conexão com o banco
+// Incluir conexão e verificar se está logado
 require_once "../includes/conexao.php";
 require_once "../includes/logado.php";
 
-$busca1= "SELECT titulo, curso_id FROM modulos WHERE id = '$modulo_id'";
-$resultado_final = mysqli_query($conexao, $busca1);
-$qtd_cursos = mysqli_fetch_assoc($resultado_final);
+// 1. Contar total de Cursos
+$sql_cursos = "SELECT COUNT(id) AS total FROM cursos";
+$res_cursos = mysqli_query($conexao, $sql_cursos);
+$total_cursos = mysqli_fetch_assoc($res_cursos)['total'];
 
-$nome_do_modulo = $dados_modulo['titulo'] ?? "Módulo Desconhecido";
-$curso_id = $dados_modulo['curso_id'] ?? "";
+// 2. Contar total de Módulos
+$sql_modulos = "SELECT COUNT(id) AS total FROM modulos";
+$res_modulos = mysqli_query($conexao, $sql_modulos);
+$total_modulos = mysqli_fetch_assoc($res_modulos)['total'];
 
-// 3. Buscar APENAS as aulas que pertencem a este módulo
-$sql_aulas = "SELECT * FROM aulas WHERE modulo_id = '$modulo_id' ORDER BY ordem ASC";
-$resultado_aulas = mysqli_query($conexao, $sql_aulas);
+// 3. Contar total de Aulas
+$sql_aulas = "SELECT COUNT(id) AS total FROM aulas";
+$res_aulas = mysqli_query($conexao, $sql_aulas);
+$total_aulas = mysqli_fetch_assoc($res_aulas)['total'];
+
+// (Opcional) Buscar os últimos 5 cursos para a tabela
+$sql_ultimos_cursos = "SELECT * FROM cursos ORDER BY id DESC LIMIT 5";
+$res_ultimos_cursos = mysqli_query($conexao, $sql_ultimos_cursos);
 ?>
 
 <!DOCTYPE html>
@@ -91,7 +99,7 @@ $resultado_aulas = mysqli_query($conexao, $sql_aulas);
                         <span class="text-2xl">📚</span>
                         <span class="text-xs text-gray-400 bg-blue-50 px-2 py-0.5 rounded">Total</span>
                     </div>
-                    <p class="text-3xl font-extrabold text-senai-blue">3</p>
+                    <p class="text-3xl font-extrabold text-senai-blue"><?php echo $total_cursos; ?></p>
                     <p class="text-sm text-gray-500 mt-1">Cursos cadastrados</p>
                 </div>
                 <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-senai-orange">
@@ -99,7 +107,7 @@ $resultado_aulas = mysqli_query($conexao, $sql_aulas);
                         <span class="text-2xl">📦</span>
                         <span class="text-xs text-gray-400 bg-orange-50 px-2 py-0.5 rounded">Total</span>
                     </div>
-                    <p class="text-3xl font-extrabold text-senai-orange">5</p>
+                    <p class="text-3xl font-extrabold text-senai-orange"><?php echo $total_modulos; ?></p>
                     <p class="text-sm text-gray-500 mt-1">Módulos cadastrados</p>
                 </div>
                 <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-senai-red">
@@ -107,7 +115,7 @@ $resultado_aulas = mysqli_query($conexao, $sql_aulas);
                         <span class="text-2xl">🎬</span>
                         <span class="text-xs text-gray-400 bg-red-50 px-2 py-0.5 rounded">Total</span>
                     </div>
-                    <p class="text-3xl font-extrabold text-senai-red">9</p>
+                    <p class="text-3xl font-extrabold text-senai-red"><?php echo $total_aulas; ?></p>
                     <p class="text-sm text-gray-500 mt-1">Aulas cadastradas</p>
                 </div>
                 <div class="bg-white rounded-xl p-5 shadow-sm border-t-4 border-senai-green">
@@ -166,26 +174,23 @@ $resultado_aulas = mysqli_query($conexao, $sql_aulas);
                                 <th class="text-center pb-2 font-semibold">Status</th>
                             </tr>
                         </thead>
+
                         <tbody class="divide-y divide-gray-100">
-                            <tr>
-                                <td class="py-2.5 font-medium text-gray-700">🌐 HTML e CSS do Zero</td>
-                                <td class="py-2.5 text-center text-gray-500">3</td>
-                                <td class="py-2.5 text-center text-gray-500">9</td>
-                                <td class="py-2.5 text-center"><span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">Ativo</span></td>
-                            </tr>
-                            <tr>
-                                <td class="py-2.5 font-medium text-gray-700">🐘 PHP para Iniciantes</td>
-                                <td class="py-2.5 text-center text-gray-500">2</td>
-                                <td class="py-2.5 text-center text-gray-500">5</td>
-                                <td class="py-2.5 text-center"><span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">Ativo</span></td>
-                            </tr>
-                            <tr>
-                                <td class="py-2.5 font-medium text-gray-700">⚡ JavaScript Moderno</td>
-                                <td class="py-2.5 text-center text-gray-500">4</td>
-                                <td class="py-2.5 text-center text-gray-500">12</td>
-                                <td class="py-2.5 text-center"><span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">Ativo</span></td>
-                            </tr>
-                        </tbody>
+                            <?php while ($curso = mysqli_fetch_assoc($res_ultimos_cursos)): ?>
+                                <tr>
+                                <td class="py-2.5 font-medium text-gray-700 flex items-center gap-2">
+                                     <?php if (!empty($curso['capa'])): ?>
+                                        <img src="../uploads/<?php echo $curso['capa']; ?>" alt="Capa" class="w-8 h-8 rounded object-cover border border-gray-200">
+                                        <?php else: ?>
+                                            <div class="w-8 h-8 bg-blue-100 rounded flex items-center justify-center text-sm">🌐</div>
+    
+                                            <?php endif; ?>
+                                            <span><?php echo $curso['titulo']; ?></span>
+                                         </td>
+                                      </tr>
+                              <?php endwhile; ?>
+                         </tbody>
+
                     </table>
                 </div>
 
