@@ -1,3 +1,10 @@
+<?php
+session_start();
+
+require_once "includes/conexao.php";
+require_once "includes/logado.php";
+
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -24,7 +31,7 @@
             <a href="cursos.php"      class="text-blue-200 hover:text-white text-sm transition">Cursos</a>
             <a href="meus_cursos.php" class="text-white text-sm font-semibold border-b-2 border-white pb-0.5">Meus Cursos</a>
             <div class="flex-1"></div>
-            <span class="text-sm text-blue-200">Olá, <strong class="text-white"> Gabriel Aires</strong></span>
+            <strong class="text-white">Olá, <?php echo $_SESSION['usuario_nome'] ?? 'Aluno'; ?></strong>
             <a href="login.php" class="bg-senai-red text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-red-700 transition">Sair</a>
         </div>
     </nav>
@@ -34,7 +41,7 @@
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-extrabold text-gray-800">Meus Cursos</h1>
-                <p class="text-sm text-gray-500 mt-1">Bem-vindo de volta, <strong>Gabriel</strong>! Continue de onde parou.</p>
+                <p class="text-sm text-gray-500 mt-1">Bem-vindo(a) de volta, <strong class="text-black"><?php echo $_SESSION['usuario_nome'] ?? 'Aluno'; ?></strong>! Continue de onde parou.</p>
             </div>
             <a href="cursos.php" class="border-2 border-senai-blue text-senai-blue text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition">
                 + Explorar mais cursos
