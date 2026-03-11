@@ -94,7 +94,7 @@
                         <p class="text-sm text-gray-500 mb-4 flex-1">Aprenda a criar páginas web profissionais do início ao fim, com projetos práticos.</p>
                         <a href="cadastro.php" class="bg-senai-blue text-white text-sm font-semibold py-2 rounded-lg text-center hover:bg-senai-blue-dark transition">
                             Inscrever-se Grátis
-                        </a>
+                        </a> 
                     </div>
                 </div>
 

@@ -1,9 +1,48 @@
+<?php
+session_start();
+require_once "includes/conexao.php";
+require_once "includes/logado.php";
+
+$usuario_id = $_SESSION["usuario_id"];
+
+// 1. Pega o ID do curso que o aluno clicou (vem da URL: curso.php?id=3)
+$curso_id = $_GET["id"] ?? 0;
+
+// 2. SEGURANÇA: Verifica se o aluno logado realmente está matriculado neste curso específico
+$sql_matricula = "SELECT id FROM inscricoes WHERE usuario_id = '$usuario_id' AND curso_id = '$curso_id'";
+$res_matricula = mysqli_query($conexao, $sql_matricula);
+
+// Se não achar a matrícula, chuta ele de volta pra mochila
+if (mysqli_num_rows($res_matricula) === 0) {
+    header("Location: meus_cursos.php");
+    exit;
+}
+
+// 3. Busca os dados APENAS DESTE CURSO (para colocar o título e a capa lá no cabeçalho)
+$sql_curso = "SELECT * FROM cursos WHERE id = '$curso_id'";
+$curso = mysqli_fetch_assoc(mysqli_query($conexao, $sql_curso));
+
+// 4. CONTAGEM GERAL: Quantos módulos esse curso tem no total?
+$sql_tot_modulos = "SELECT COUNT(id) AS total FROM modulos WHERE curso_id = '$curso_id'";
+$tot_modulos = mysqli_fetch_assoc(mysqli_query($conexao, $sql_tot_modulos))['total'];
+
+// 5. CONTAGEM GERAL: Quantas aulas esse curso tem no total? (Cruza a tabela aulas com a tabela modulos)
+$sql_tot_aulas = "SELECT COUNT(aulas.id) AS total FROM aulas 
+                  INNER JOIN modulos ON aulas.modulo_id = modulos.id 
+                  WHERE modulos.curso_id = '$curso_id'";
+$tot_aulas = mysqli_fetch_assoc(mysqli_query($conexao, $sql_tot_aulas))['total'];
+
+// 6. Busca a lista de MÓDULOS para usarmos no laço 'while' lá no HTML
+$sql_modulos = "SELECT * FROM modulos WHERE curso_id = '$curso_id' ORDER BY ordem ASC";
+$resultado_modulos = mysqli_query($conexao, $sql_modulos);
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML e CSS do Zero — EAD SENAI</title>
+    <title><?php echo $titulo ['titulo']; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,7 +57,7 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
-
+ 
     <!-- NAVBAR -->
     <nav class="bg-senai-blue shadow-md sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
@@ -26,178 +65,56 @@
             <a href="cursos.php"      class="text-blue-200 hover:text-white text-sm transition">Cursos</a>
             <a href="meus_cursos.php" class="text-blue-200 hover:text-white text-sm transition">Meus Cursos</a>
             <div class="flex-1"></div>
-            <span class="text-sm text-blue-200">Olá, <strong class="text-white">João Silva</strong></span>
+            <span class="text-sm text-blue-200">Olá, <strong class="text-white"><?php echo $_SESSION['usuario_nome'] ?? 'Aluno'; ?></strong></span>
             <a href="login.php" class="bg-senai-red text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-red-700 transition">Sair</a>
         </div>
     </nav>
 
-    <!-- BREADCRUMB + INFO DO CURSO -->
     <div class="bg-white border-b border-gray-200 px-6 py-4">
         <div class="max-w-6xl mx-auto">
+            
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                <a href="meus_cursos.php" class="hover:text-senai-blue">Meus Cursos</a>
+                <a href="meus_cursos.php" class="hover:text-senai-blue transition">Meus Cursos</a>
                 <span></span>
-                <span class="text-gray-700 font-semibold">HTML e CSS do Zero</span>
+                <span class="text-gray-700 font-semibold"><?php echo $curso['titulo']; ?></span>
             </div>
-            <div class="flex items-center justify-between flex-wrap gap-3">
-                <div class="flex items-center gap-4">
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-700 w-14 h-14 rounded-lg flex items-center justify-center">
-                        <span class="text-3xl">🌐</span>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-extrabold text-gray-800">HTML e CSS do Zero</h1>
-                        <div class="flex gap-4 text-xs text-gray-500 mt-1">
-                            <span>📚 3 módulos</span>
-                            <span>🎬 9 aulas</span>
-                            <span class="text-senai-green font-semibold">✓ 3 aulas concluídas</span>
-                        </div>
-                    </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-700 w-14 h-14 rounded-lg flex items-center justify-center shadow-sm">
+                    <span class="text-3xl">🌐</span>
                 </div>
-                <!-- Progresso geral -->
-                <div class="min-w-48">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Progresso geral</span>
-                        <span class="font-semibold text-senai-green">33%</span>
-                    </div>
-                    <div class="bg-gray-200 rounded-full h-3">
-                        <div class="bg-senai-green h-3 rounded-full" style="width:33%"></div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-gray-800"><?php echo $curso['titulo']; ?></h1>
+                    
+                    <div class="flex gap-4 text-xs text-gray-500 mt-1">
+                        <span>📚 <?php echo $tot_modulos; ?> Módulos</span>
+                        <span>🎬 <?php echo $tot_aulas; ?> Aulas Disponíveis</span>
+                        
+                        <span class="text-senai-green font-semibold">✓ 0 aulas concluídas</span>
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="max-w-6xl mx-auto px-6 py-6 flex gap-6 flex-1 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-8">
+        
+        <?php while ($modulo = mysqli_fetch_assoc($resultado_modulos)): ?>
+            
+            <?php
+            $id_deste_modulo = $modulo['id'];
+            $sql_qtd_aulas_modulo = "SELECT COUNT(id) AS total FROM aulas WHERE modulo_id = '$id_deste_modulo'";
+            $qtd_aulas_modulo = mysqli_fetch_assoc(mysqli_query($conexao, $sql_qtd_aulas_modulo))['total'];
+            ?>
 
-        <!-- COLUNA PRINCIPAL — MÓDULOS -->
-        <div class="flex-1 space-y-4">
-
-            <!-- MÓDULO 1 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="modulo-header flex items-center justify-between px-5 py-4 bg-blue-50 border-l-4 border-senai-blue">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-senai-blue rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
-                        <div>
-                            <h3 class="font-bold text-gray-800">Módulo 1: Introdução ao HTML</h3>
-                            <p class="text-xs text-gray-500">3 aulas &nbsp;·&nbsp; <span class="text-senai-green">2 concluídas</span></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="bg-gray-200 rounded-full h-2 w-24">
-                            <div class="bg-senai-green h-2 rounded-full" style="width:66%"></div>
-                        </div>
-                        <span class="text-xs text-gray-400">66%</span>
-                    </div>
+            <div class="mb-4 bg-gray-50 p-4 border rounded-lg">
+                <h2 class="font-bold"><?php echo $modulo['titulo']; ?></h2>
+                <p class="text-sm text-gray-500">Este módulo tem <?php echo $qtd_aulas_modulo; ?> aulas.</p>
                 </div>
-                <div class="modulo-body divide-y divide-gray-100">
-                    <!-- Aula concluída -->
-                    <div class="flex items-center gap-4 px-5 py-3 bg-green-50/50">
-                        <div class="w-7 h-7 bg-senai-green rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-xs font-bold">✓</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-700">O que é HTML?</p>
-                            <p class="text-xs text-gray-400">⏱ 08:20</p>
-                        </div>
-                        <span class="text-xs text-senai-green font-semibold">Concluída</span>
-                        <a href="aula.php" class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">Rever</a>
-                    </div>
-                    <!-- Aula concluída -->
-                    <div class="flex items-center gap-4 px-5 py-3 bg-green-50/50">
-                        <div class="w-7 h-7 bg-senai-green rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-xs font-bold">✓</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-700">Estrutura básica de uma página</p>
-                            <p class="text-xs text-gray-400">⏱ 12:45</p>
-                        </div>
-                        <span class="text-xs text-senai-green font-semibold">Concluída</span>
-                        <a href="aula.php" class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">Rever</a>
-                    </div>
-                    <!-- Aula em andamento -->
-                    <div class="flex items-center gap-4 px-5 py-3 bg-blue-50">
-                        <div class="w-7 h-7 bg-senai-blue rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white text-xs">▶</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-semibold text-gray-800">Tags Essenciais do HTML</p>
-                            <p class="text-xs text-gray-400">⏱ 15:10</p>
-                        </div>
-                        <span class="text-xs text-senai-blue font-semibold">Em andamento</span>
-                        <a href="aula.php" class="bg-senai-blue text-white text-xs px-4 py-1.5 rounded-lg hover:bg-senai-blue-dark transition font-semibold">Assistir</a>
-                    </div>
-                </div>
-            </div>
 
-            <!-- MÓDULO 2 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="modulo-header flex items-center justify-between px-5 py-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-bold">2</div>
-                        <div>
-                            <h3 class="font-bold text-gray-700">Módulo 2: Estilizando com CSS</h3>
-                            <p class="text-xs text-gray-500">3 aulas &nbsp;·&nbsp; <span class="text-gray-400">0 concluídas</span></p>
-                        </div>
-                    </div>
-                    <span class="text-xs text-gray-400">Bloqueado — conclua o módulo anterior</span>
-                </div>
-                <div class="divide-y divide-gray-100 opacity-50">
-                    <div class="flex items-center gap-4 px-5 py-3">
-                        <div class="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center"><span class="text-gray-400 text-xs">○</span></div>
-                        <div class="flex-1"><p class="text-sm text-gray-500">Seletores CSS</p><p class="text-xs text-gray-400">⏱ 10:00</p></div>
-                    </div>
-                    <div class="flex items-center gap-4 px-5 py-3">
-                        <div class="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center"><span class="text-gray-400 text-xs">○</span></div>
-                        <div class="flex-1"><p class="text-sm text-gray-500">Box Model</p><p class="text-xs text-gray-400">⏱ 14:30</p></div>
-                    </div>
-                    <div class="flex items-center gap-4 px-5 py-3">
-                        <div class="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center"><span class="text-gray-400 text-xs">○</span></div>
-                        <div class="flex-1"><p class="text-sm text-gray-500">Flexbox na prática</p><p class="text-xs text-gray-400">⏱ 20:00</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MÓDULO 3 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="px-5 py-4 opacity-50">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-bold">3</div>
-                        <div>
-                            <h3 class="font-bold text-gray-700">Módulo 3: Projeto Final</h3>
-                            <p class="text-xs text-gray-500">3 aulas &nbsp;·&nbsp; <span class="text-gray-400">0 concluídas</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- SIDEBAR — NAVEGAÇÃO RÁPIDA -->
-        <aside class="w-64 flex-shrink-0 hidden lg:block">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sticky top-20">
-                <h4 class="font-bold text-gray-700 text-sm mb-3">Navegação do Curso</h4>
-                <ul class="space-y-1 text-xs">
-                    <li class="font-semibold text-senai-blue border-l-2 border-senai-blue pl-2">Módulo 1: Introdução ao HTML</li>
-                    <li class="text-senai-green pl-4">✓ O que é HTML?</li>
-                    <li class="text-senai-green pl-4">✓ Estrutura básica</li>
-                    <li class="text-senai-blue font-semibold pl-4">▶ Tags Essenciais</li>
-                    <li class="text-gray-400 mt-2">Módulo 2: Estilizando com CSS</li>
-                    <li class="text-gray-300 pl-4">○ Seletores CSS</li>
-                    <li class="text-gray-300 pl-4">○ Box Model</li>
-                    <li class="text-gray-300 pl-4">○ Flexbox</li>
-                    <li class="text-gray-400 mt-2">Módulo 3: Projeto Final</li>
-                    <li class="text-gray-300 pl-4">○ Aula 1</li>
-                    <li class="text-gray-300 pl-4">○ Aula 2</li>
-                    <li class="text-gray-300 pl-4">○ Aula 3</li>
-                </ul>
-                <hr class="my-3 border-gray-200">
-                <a href="aula.php" class="block bg-senai-blue text-white text-xs font-bold py-2 rounded-lg text-center hover:bg-senai-blue-dark transition">
-                    ▶ Continuar Aula
-                </a>
-            </div>
-        </aside>
-
+        <?php endwhile; ?>
+        
     </main>
 
     <!-- FOOTER -->
