@@ -4,7 +4,7 @@ session_start();
 
 // Incluir o arquivo de conexão com o banco
 require_once "../includes/conexao.php";
-require_once "../includes/logado.php";
+require_once "../includes/logado_admin.php";
 
 // Buscar todos os cursos cadastrados
 $sql_cursos = "SELECT * FROM cursos ORDER BY id DESC";
@@ -54,8 +54,6 @@ $total_cursos = mysqli_num_rows($resultado_cursos);
         <nav class="flex-1 p-3 space-y-1">
             <a href="index.php"      class="nav-link">📊 <span>Dashboard</span></a>
             <a href="cursos.php"     class="nav-link active">📚 <span>Cursos</span></a>
-            <a href="modulos.php"    class="nav-link">📦 <span>Módulos</span></a>
-            <a href="aulas.php"      class="nav-link">🎬 <span>Aulas</span></a>
             <div class="pt-2 border-t border-gray-700 mt-2">
                 <a href="../meus_cursos.php" class="nav-link">👁 <span>Ver site</span></a>
                 <a href="../login.php"       class="nav-link text-red-400 hover:text-red-300">🚪 <span>Sair</span></a>

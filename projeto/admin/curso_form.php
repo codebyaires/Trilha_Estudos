@@ -4,7 +4,7 @@ session_start();
 
 // Incluir o arquivo de conexão com o banco
 require_once "../includes/conexao.php";
-require_once "../includes/logado.php";
+require_once "../includes/logado_admin.php";
 
 // Variáveis para mensagens
 $sucesso = "";
@@ -34,8 +34,8 @@ if (isset($_GET["excluir"])) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $id = $_POST["id"] ?? null;
-    $titulo  = $_POST["titulo"] ?? "";
-    $descricao  = $_POST["descricao"] ?? "";
+    $titulo = mysqli_real_escape_string($conexao, trim($_POST["titulo"] ?? ""));
+    $descricao = mysqli_real_escape_string($conexao, trim($_POST["descricao"] ?? ""));
     $ativo = $_POST["ativo"] ?? 1; // Pega o status (1=Ativo, 0=Inativo). Padrão é 1.
 
     // ==========================================

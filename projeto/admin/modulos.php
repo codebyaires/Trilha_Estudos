@@ -4,7 +4,7 @@ session_start();
 
 // Incluir o arquivo de conexão com o banco
 require_once "../includes/conexao.php";
-require_once "../includes/logado.php";
+require_once "../includes/logado_admin.php";
 
 // Tentar pegar o ID do curso pela URL
 $curso_id = $_GET['curso_id'] ?? null;
@@ -70,7 +70,6 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
             <a href="index.php"   class="nav-link">📊 <span>Dashboard</span></a>
             <a href="cursos.php"  class="nav-link">📚 <span>Cursos</span></a>
             <a href="modulos.php" class="nav-link active">📦 <span>Módulos</span></a>
-            <a href="aulas.php"   class="nav-link">🎬 <span>Aulas</span></a>
             <div class="pt-2 border-t border-gray-700 mt-2">
                 <a href="../meus_cursos.php" class="nav-link">👁 <span>Ver site</span></a>
                 <a href="../login.php"       class="nav-link text-red-400 hover:text-red-300">🚪 <span>Sair</span></a>
