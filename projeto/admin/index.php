@@ -4,7 +4,7 @@ session_start();
 
 // Incluir conexão e verificar se está logado
 require_once "../includes/conexao.php";
-require_once "../includes/logado.php";
+require_once "../includes/logado_admin.php";
 
 // 1. Contar total de Cursos
 $sql_cursos = "SELECT COUNT(id) AS total FROM cursos";
@@ -69,8 +69,6 @@ $res_ultimos_cursos = mysqli_query($conexao, $sql_ultimos_cursos);
         <nav class="flex-1 p-3 space-y-1">
             <a href="index.php"      class="nav-link active">📊 <span>Dashboard</span></a>
             <a href="cursos.php"     class="nav-link">📚 <span>Cursos</span></a>
-            <a href="modulos.php"    class="nav-link">📦 <span>Módulos</span></a>
-            <a href="aulas.php"      class="nav-link">🎬 <span>Aulas</span></a>
             <div class="pt-2 border-t border-gray-700 mt-2">
                 <a href="../meus_cursos.php" class="nav-link">👁 <span>Ver site</span></a>
                 <a href="../login.php"       class="nav-link text-red-400 hover:text-red-300">🚪 <span>Sair</span></a>

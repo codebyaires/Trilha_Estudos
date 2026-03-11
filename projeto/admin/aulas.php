@@ -4,7 +4,7 @@ session_start();
 
 // Incluir o arquivo de conexão com o banco
 require_once "../includes/conexao.php";
-require_once "../includes/logado.php";
+require_once "../includes/logado_admin.php";
 
 // 1. Pegar o ID do módulo pela URL
 $modulo_id = $_GET['modulo_id'] ?? null;

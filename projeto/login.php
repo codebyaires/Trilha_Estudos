@@ -31,15 +31,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Verificar a senha
             if (password_verify($senha, $usuario["senha"])) {
                 
+
                 // Sucesso! Gerar crachá (Sessão)
                 session_regenerate_id(true);
                 $_SESSION["usuario_id"] = $usuario["id"];
                 $_SESSION["usuario_nome"] = $usuario["nome"];
                 $_SESSION["usuario_tipo"] = $usuario["tipo"];
-
-                // Redirecionar para a área logada
-                header("Location: meus_cursos.php");
+                
+                // REDIRECIONAMENTO INTELIGENTE
+                if ($_SESSION["usuario_tipo"] === 'admin') {
+                    // Se o perfil for admin, manda para o painel de controle
+                    header("Location: admin/index.php");
+                } else {
+                    // Se for aluno, manda para a mochila de cursos
+                    header("Location: meus_cursos.php");
+                }
                 exit;
+
             } else {
                 $erro = "Email ou senha incorretos.";
             }
