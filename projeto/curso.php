@@ -77,7 +77,7 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
                 <a href="meus_cursos.php" class="hover:text-senai-blue transition">Meus Cursos</a>
                 <span></span>
                 <span class="text-gray-700 font-semibold"><?php echo $curso['titulo']; ?></span>
-            </div>
+            </div> 
             
             <div class="flex items-center gap-4">
                 <div class="bg-gradient-to-br from-blue-500 to-blue-700 w-14 h-14 rounded-lg flex items-center justify-center shadow-sm">
@@ -98,7 +98,7 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
         </div>
     </div>
 
-    <main class="max-w-6xl mx-auto px-6 py-8">
+    <main class="max-w-4xl mx-auto px-6 py-10 w-full flex-1">
         
         <?php while ($modulo = mysqli_fetch_assoc($resultado_modulos)): ?>
             
@@ -108,10 +108,53 @@ $resultado_modulos = mysqli_query($conexao, $sql_modulos);
             $qtd_aulas_modulo = mysqli_fetch_assoc(mysqli_query($conexao, $sql_qtd_aulas_modulo))['total'];
             ?>
 
-            <div class="mb-4 bg-gray-50 p-4 border rounded-lg">
-                <h2 class="font-bold"><?php echo $modulo['titulo']; ?></h2>
-                <p class="text-sm text-gray-500">Este módulo tem <?php echo $qtd_aulas_modulo; ?> aulas.</p>
+            <div class="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="font-bold text-lg text-gray-800"><?php echo $modulo['titulo']; ?></h2>
+                    <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-3 py-1 rounded-full">
+                        <?php echo $qtd_aulas_modulo; ?> aulas
+                    </span>
                 </div>
+
+                <div class="divide-y divide-gray-100">
+                    
+                    <?php
+                    // Busca as aulas exatas DESTE módulo
+                    $sql_aulas = "SELECT * FROM aulas WHERE modulo_id = '$id_deste_modulo' ORDER BY ordem ASC";
+                    $res_aulas = mysqli_query($conexao, $sql_aulas);
+
+                    // Se tiver aulas, faz o loop para criar a lista
+                    if (mysqli_num_rows($res_aulas) > 0):
+                        while ($aula = mysqli_fetch_assoc($res_aulas)):
+                    ?>
+                        
+                        <a href="aula.php?id=<?php echo $aula['id']; ?>" class="flex items-center justify-between px-6 py-4 hover:bg-blue-50 transition group cursor-pointer text-decoration-none">
+                            <div class="flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 text-senai-blue flex items-center justify-center group-hover:bg-senai-blue group-hover:text-white transition">
+                                    <svg class="w-4 h-4 ml-0.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                </div>
+                                <span class="text-gray-700 font-medium group-hover:text-senai-blue transition">
+                                    <?php echo $aula['titulo']; ?>
+                                </span>
+                            </div>
+                            
+                            <span class="text-xs text-blue-500 font-semibold opacity-0 group-hover:opacity-100 transition">
+                                Assistir Aula
+                            </span>
+                        </a>
+
+                    <?php
+                        endwhile;
+                    else:
+                    ?>
+                        <div class="px-6 py-5 text-sm text-gray-500 italic text-center">
+                            Nenhuma aula disponível neste módulo ainda.
+                        </div>
+                    <?php endif; ?>
+                    
+                </div>
+            </div>
 
         <?php endwhile; ?>
         

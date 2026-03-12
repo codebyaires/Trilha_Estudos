@@ -1,15 +1,68 @@
+<?php
+session_start();
+require_once "includes/logado_admin.php";
+require_once "includes/conexao.php";
+
+$usuario_id = $_SESSION["usuario_id"];
+$aula_id = $_GET["id"] ?? 0;
+
+// Busca os dados na aula atual
+$sql_aula = "SELECT * FROM aulas WHERE id = '$aula_id'";
+$res_aula = mysqli_query($conexao, $sql_aula);
+
+// Se a aula não existe ele chuta o aluno para 'meus_cursos'
+if (mysqli_num_rows($res_aula) === 0){
+    header("Location: meus_cursos.php");
+    exit;
+}
+
+// Associa o resultado buscamos no banco, a variavel 'aula'
+$aula = mysqli_fetch_assoc($res_aula);
+// Associa a aula ao modulo do curso
+$modulo_id = $aula['modulo_id'];
+
+// Busca o módulo para saber de qual curso é esse módulo
+$sql_modulo = "SELECT * FROM modulos WHERE id = '$modulo_id'";
+$res_curso = mysqli_query($conexao, $sql_modulo);
+$curso = mysqli_fetch_assoc($res_curso);
+
+// SEGURANÇA: Verifica se o aluno realmente tem acesso a este curso
+$sql_matricula = "SELECT * FROM incricoes WHERE usuario_id = '$usuario_id' AND curso_id = '$curso_id'";
+if (mysqli_num_rows(mysqli_query($conexao, $sql_matricula)) === 0) {
+    header("Location: meus_cursos.php");
+    exit;
+}
+
+$link_video = $aula['video_url'];
+// 1. O DETETIVE (strpos)
+if (strpos($link_video, 'watch?v=') !== false) {
+// 2. O CIRURGIÃO (str_replace)
+$link_video = str_replace('watch?v=', 'embed/', $link_video);
+}
+
+// Descobre qual é o próximo de acordo com a própria ordem do banco.
+$ordem_atual = $aula['ordem'];
+
+$sql_ant = "SELECT id FROM aulas WHERE modulo_id = '$modulo_id' AND ordem < '$ordem_atual' ORDER BY ordem DESC LIMIT 1";
+$res_ant = mysqli_query($conexao, $sql_ant);
+$id_anterior = (mysqli_num_rows($res_ant) > 0) ? mysqli_fetch_assoc($res_ant)['id'] : null;
+
+$sql_prox = "SELECT id FROM aulas WHERE modulo_id = '$modulo_id' AND ordem > '$ordem_atual' ORDER BY ordem ASC LIMIT 1";
+$res_prox = mysqli_query($conexao, $sql_prox);
+$id_proxima = (mysqli_num_rows($res_prox) > 0) ? mysqli_fetch_assoc($res_prox)['id'] : null;
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tags Essenciais do HTML — EAD SENAI</title>
+    <title><?php echo $aula['titulo']; ?> — EAD SENAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: { extend: { colors: { senai: { red:'#C0392B', blue:'#34679A', 'blue-dark':'#2C5A85', orange:'#E67E22', green:'#27AE60' } } } }
         }
-    </script>
+    </script> 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -22,7 +75,7 @@
         <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-4">
             <a href="index.php" class="flex items-center gap-1.5 text-white font-extrabold text-base">🎓 EAD SENAI</a>
             <span class="text-gray-600">/</span>
-            <a href="curso.php" class="text-gray-400 hover:text-white text-sm transition">HTML e CSS do Zero</a>
+            <a href="curso.php?id=<?php echo $curso_id; ?>" class="text-gray-400 hover:text-white text-sm transition">
             <span class="text-gray-600">/</span>
             <span class="text-gray-300 text-sm">Módulo 1</span>
             <div class="flex-1"></div>
