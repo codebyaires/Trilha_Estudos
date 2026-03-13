@@ -77,8 +77,8 @@
             <div class="text-center mb-10">
                 <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Cursos em Destaque</h2>
                 <p class="text-gray-500">Escolha um curso, inscreva-se e comece a aprender hoje mesmo.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+             </div>
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                 <!-- Card 1 -->
                 <div class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col">
@@ -90,53 +90,16 @@
                             <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded">Front-end</span>
                             <span class="text-xs text-gray-400">3 módulos · 9 aulas</span>
                         </div>
-                        <h3 class="font-bold text-gray-800 text-base mb-2">HTML e CSS do Zero</h3>
+                        <h3 class="font-bold text-gray-800 text-base mb-2"><?php echo $cursos ['titulo'] ?></h3>
                         <p class="text-sm text-gray-500 mb-4 flex-1">Aprenda a criar páginas web profissionais do início ao fim, com projetos práticos.</p>
                         <a href="cadastro.php" class="bg-senai-blue text-white text-sm font-semibold py-2 rounded-lg text-center hover:bg-senai-blue-dark transition">
                             Inscrever-se Grátis
                         </a> 
                     </div>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col">
-                    <div class="bg-gradient-to-br from-orange-400 to-red-500 h-36 flex items-center justify-center">
-                        <span class="text-5xl">🐘</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-0.5 rounded">Back-end</span>
-                            <span class="text-xs text-gray-400">2 módulos · 5 aulas</span>
-                        </div>
-                        <h3 class="font-bold text-gray-800 text-base mb-2">PHP para Iniciantes</h3>
-                        <p class="text-sm text-gray-500 mb-4 flex-1">Introdução ao desenvolvimento back-end com PHP e MySQL. Do zero ao primeiro sistema.</p>
-                        <a href="cadastro.php" class="bg-senai-blue text-white text-sm font-semibold py-2 rounded-lg text-center hover:bg-senai-blue-dark transition">
-                            Inscrever-se Grátis
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col">
-                    <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 h-36 flex items-center justify-center">
-                        <span class="text-5xl">⚡</span>
-                    </div>
-                    <div class="p-5 flex flex-col flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-0.5 rounded">Front-end</span>
-                            <span class="text-xs text-gray-400">4 módulos · 12 aulas</span>
-                        </div>
-                        <h3 class="font-bold text-gray-800 text-base mb-2">JavaScript Moderno (ES6+)</h3>
-                        <p class="text-sm text-gray-500 mb-4 flex-1">Domine os fundamentos e recursos modernos do JavaScript para a web.</p>
-                        <a href="cadastro.php" class="bg-senai-blue text-white text-sm font-semibold py-2 rounded-lg text-center hover:bg-senai-blue-dark transition">
-                            Inscrever-se Grátis
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+             </div>
+     </div>
     </section>
+
 
     <!-- COMO FUNCIONA -->
     <section id="sobre" class="py-16 px-6 bg-white">

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "includes/logado_admin.php";
+require_once "includes/logado.php";
 require_once "includes/conexao.php";
 
 $usuario_id = $_SESSION["usuario_id"];
@@ -23,21 +23,33 @@ $modulo_id = $aula['modulo_id'];
 
 // Busca o módulo para saber de qual curso é esse módulo
 $sql_modulo = "SELECT * FROM modulos WHERE id = '$modulo_id'";
-$res_curso = mysqli_query($conexao, $sql_modulo);
+$res_modulo = mysqli_query($conexao, $sql_modulo);
+$modulo = mysqli_fetch_assoc($res_modulo);
+
+// CRIA A VARIÁVEL QUE FALTAVA: Pega o ID do curso de dentro do módulo
+$curso_id = $modulo['curso_id']; 
+
+// Busca os dados do curso (Útil para usar no HTML depois)
+$sql_curso = "SELECT * FROM cursos WHERE id = '$curso_id'";
+$res_curso = mysqli_query($conexao, $sql_curso);
 $curso = mysqli_fetch_assoc($res_curso);
 
 // SEGURANÇA: Verifica se o aluno realmente tem acesso a este curso
-$sql_matricula = "SELECT * FROM incricoes WHERE usuario_id = '$usuario_id' AND curso_id = '$curso_id'";
+$sql_matricula = "SELECT id FROM inscricoes WHERE usuario_id = '$usuario_id' AND curso_id = '$curso_id'";
 if (mysqli_num_rows(mysqli_query($conexao, $sql_matricula)) === 0) {
     header("Location: meus_cursos.php");
     exit;
 }
 
-$link_video = $aula['video_url'];
-// 1. O DETETIVE (strpos)
-if (strpos($link_video, 'watch?v=') !== false) {
-// 2. O CIRURGIÃO (str_replace)
-$link_video = str_replace('watch?v=', 'embed/', $link_video);
+$link_video = $aula['video_url'] ?? '';
+
+// O "SUPER DETETIVE" (Expressão Regular)
+if (!empty($link_video)) {
+    // Procura o ID do vídeo em qualquer formato de link do YouTube (watch?v=, youtu.be, embed, etc)
+    if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $link_video, $match)) {
+        $video_id = $match[1]; // Pega exatamente as 11 letras do ID
+        $link_video = "https://www.youtube.com/embed/" . $video_id; // Monta o link perfeito
+    }
 }
 
 // Descobre qual é o próximo de acordo com a própria ordem do banco.
@@ -50,6 +62,29 @@ $id_anterior = (mysqli_num_rows($res_ant) > 0) ? mysqli_fetch_assoc($res_ant)['i
 $sql_prox = "SELECT id FROM aulas WHERE modulo_id = '$modulo_id' AND ordem > '$ordem_atual' ORDER BY ordem ASC LIMIT 1";
 $res_prox = mysqli_query($conexao, $sql_prox);
 $id_proxima = (mysqli_num_rows($res_prox) > 0) ? mysqli_fetch_assoc($res_prox)['id'] : null;
+
+// LÓGICA DO BOTÃO "MARCAR COMO CONCLUÍDA"
+$ja_concluiu = false;
+
+// Verifica se o aluno já concluiu essa aula no passado (muda o visual do botão)
+$sql_check = "SELECT id FROM historico WHERE usuario_id = '$usuario_id' AND aula_id = '$aula_id'";
+if (mysqli_num_rows(mysqli_query($conexao, $sql_check)) > 0) {
+    $ja_concluiu = true;
+}
+
+// Se o formulário do botão for enviado (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['marcar_concluida'])) {
+    
+    // Só insere se ele não tiver concluído ainda (evita duplicar no banco)
+    if (!$ja_concluiu) {
+        $sql_concluir = "INSERT INTO historico (usuario_id, aula_id) VALUES ('$usuario_id', '$aula_id')";
+        mysqli_query($conexao, $sql_concluir);
+    }
+    
+    // Recarrega a página para o botão ficar verde e travar
+    header("Location: aula.php?id=$aula_id");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -70,27 +105,28 @@ $id_proxima = (mysqli_num_rows($res_prox) > 0) ? mysqli_fetch_assoc($res_prox)['
 </head>
 <body class="bg-gray-900 min-h-screen flex flex-col">
  
-    <!-- NAVBAR ESCURA (modo aula) -->
     <nav class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-4">
             <a href="index.php" class="flex items-center gap-1.5 text-white font-extrabold text-base">🎓 EAD SENAI</a>
             <span class="text-gray-600">/</span>
+            
             <a href="curso.php?id=<?php echo $curso_id; ?>" class="text-gray-400 hover:text-white text-sm transition">
+                <?php echo $curso['titulo']; ?>
+            </a>
             <span class="text-gray-600">/</span>
-            <span class="text-gray-300 text-sm">Módulo 1</span>
+            <span class="text-gray-300 text-sm"><?php echo $modulo['titulo']; ?></span>
+            
             <div class="flex-1"></div>
             <a href="meus_cursos.php" class="text-gray-400 hover:text-white text-xs transition">← Meus Cursos</a>
-            <a href="login.php" class="bg-senai-red text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-red-700 transition ml-2">Sair</a>
+            <a href="logout.php" class="bg-senai-red text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-red-700 transition ml-2">Sair</a>
         </div>
     </nav>
 
-    <!-- LAYOUT PRINCIPAL -->
     <div class="flex flex-1 max-w-7xl mx-auto w-full">
 
-        <!-- SIDEBAR DE AULAS -->
         <aside class="w-72 bg-gray-800 border-r border-gray-700 flex-shrink-0 overflow-y-auto hidden lg:block" style="height: calc(100vh - 44px); position: sticky; top: 44px;">
             <div class="p-4">
-                <h3 class="text-white font-bold text-sm mb-1">HTML e CSS do Zero</h3>
+                <h3 class="text-white font-bold text-sm mb-1"><?php echo $curso['titulo']; ?></h3>
                 <div class="flex items-center gap-2 mb-4">
                     <div class="flex-1 bg-gray-700 rounded-full h-1.5">
                         <div class="bg-senai-green h-1.5 rounded-full" style="width:33%"></div>
@@ -98,169 +134,108 @@ $id_proxima = (mysqli_num_rows($res_prox) > 0) ? mysqli_fetch_assoc($res_prox)['
                     <span class="text-xs text-gray-400">33%</span>
                 </div>
 
-                <!-- Módulo 1 -->
                 <div class="mb-4">
                     <div class="flex items-center gap-2 text-xs font-bold text-white mb-2 uppercase tracking-wide">
                         <span class="w-5 h-5 bg-senai-blue rounded-full flex items-center justify-center text-xs">1</span>
-                        Introdução ao HTML
+                        <?php echo $modulo['titulo']; ?>
                     </div>
                     <ul class="space-y-1 pl-2">
-                        <li class="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-green-400 cursor-pointer hover:bg-gray-700">
-                            <span class="w-4 h-4 bg-senai-green rounded-full flex items-center justify-center flex-shrink-0 text-white" style="font-size:9px">✓</span>
-                            <span>O que é HTML?</span>
-                            <span class="ml-auto text-gray-500">8:20</span>
-                        </li>
-                        <li class="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-green-400 cursor-pointer hover:bg-gray-700">
-                            <span class="w-4 h-4 bg-senai-green rounded-full flex items-center justify-center flex-shrink-0 text-white" style="font-size:9px">✓</span>
-                            <span>Estrutura básica</span>
-                            <span class="ml-auto text-gray-500">12:45</span>
-                        </li>
                         <li class="flex items-center gap-2 py-1.5 px-2 rounded bg-senai-blue text-xs text-white cursor-pointer">
                             <span class="w-4 h-4 bg-white/30 rounded-full flex items-center justify-center flex-shrink-0" style="font-size:9px">▶</span>
-                            <span class="font-semibold">Tags Essenciais</span>
-                            <span class="ml-auto text-blue-200">15:10</span>
+                            <span class="font-semibold"><?php echo $aula['titulo']; ?></span>
                         </li>
                     </ul>
                 </div>
-
-                <!-- Módulo 2 -->
-                <div class="mb-4 opacity-50">
-                    <div class="flex items-center gap-2 text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
-                        <span class="w-5 h-5 bg-gray-600 rounded-full flex items-center justify-center text-xs">2</span>
-                        Estilizando com CSS
-                    </div>
-                    <ul class="space-y-1 pl-2">
-                        <li class="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-gray-500">
-                            <span class="w-4 h-4 bg-gray-700 rounded-full flex-shrink-0"></span>
-                            <span>Seletores CSS</span>
-                            <span class="ml-auto">10:00</span>
-                        </li>
-                        <li class="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-gray-500">
-                            <span class="w-4 h-4 bg-gray-700 rounded-full flex-shrink-0"></span>
-                            <span>Box Model</span>
-                            <span class="ml-auto">14:30</span>
-                        </li>
-                        <li class="flex items-center gap-2 py-1.5 px-2 rounded text-xs text-gray-500">
-                            <span class="w-4 h-4 bg-gray-700 rounded-full flex-shrink-0"></span>
-                            <span>Flexbox na prática</span>
-                            <span class="ml-auto">20:00</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Módulo 3 -->
-                <div class="opacity-40">
-                    <div class="flex items-center gap-2 text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
-                        <span class="w-5 h-5 bg-gray-600 rounded-full flex items-center justify-center text-xs">3</span>
-                        Projeto Final
-                    </div>
-                    <ul class="space-y-1 pl-2">
-                        <li class="text-xs text-gray-500 px-2 py-1.5">○ Aula 1</li>
-                        <li class="text-xs text-gray-500 px-2 py-1.5">○ Aula 2</li>
-                        <li class="text-xs text-gray-500 px-2 py-1.5">○ Aula 3</li>
-                    </ul>
-                </div>
-
             </div>
         </aside>
 
-        <!-- ÁREA PRINCIPAL DA AULA -->
         <main class="flex-1 overflow-y-auto">
 
-            <!-- PLAYER DE VÍDEO -->
-            <div class="bg-black aspect-video flex items-center justify-center max-h-96 lg:max-h-none w-full">
-                <div class="text-center text-gray-500 p-8">
-                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-gray-700 transition">
-                        <span class="text-4xl text-white ml-1">▶</span>
+            <div class="bg-black aspect-video flex items-center justify-center max-h-96 lg:max-h-none w-full relative shadow-inner">
+                <?php if (!empty($link_video)): ?>
+                    <iframe 
+                        src="<?php echo $link_video; ?>" 
+                        title="<?php echo $aula['titulo']; ?>" 
+                        class="absolute top-0 left-0 w-full h-full"
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                <?php else: ?>
+                    <div class="text-center text-gray-500 p-8">
+                        <span class="text-4xl">📴</span>
+                        <p class="text-sm text-gray-400 mt-2">Vídeo indisponível.</p>
+                        <p class="text-xs text-gray-600 mt-1">O link do vídeo não foi cadastrado.</p>
                     </div>
-                    <p class="text-sm text-gray-400">Player de Vídeo</p>
-                    <p class="text-xs text-gray-600 mt-1">iframe YouTube / Vimeo</p>
-                    <p class="text-xs text-gray-700 mt-1 font-mono">video_url do banco de dados</p>
-                </div>
+                <?php endif; ?>
             </div>
 
-            <!-- INFORMAÇÕES DA AULA -->
             <div class="bg-white p-6 lg:p-8">
 
-                <!-- Título e badge -->
                 <div class="flex items-start justify-between gap-4 mb-4">
                     <div>
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded">Módulo 1 · Aula 3</span>
-                            <span class="text-gray-400 text-xs">⏱ 15:10</span>
+                            <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded">
+                                <?php echo $modulo['titulo']; ?>
+                            </span>
                         </div>
-                        <h1 class="text-2xl font-extrabold text-gray-800">Tags Essenciais do HTML</h1>
+                        <h1 class="text-2xl font-extrabold text-gray-800">
+                            <?php echo $aula['titulo']; ?>
+                        </h1>
                     </div>
-                    <!-- Status da aula -->
                     <span class="bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0">
                         Em andamento
                     </span>
                 </div>
 
-                <!-- Descrição -->
-                <div class="bg-gray-50 rounded-xl p-4 mb-6 text-sm text-gray-600 leading-relaxed">
-                    Nesta aula você aprenderá as principais tags HTML utilizadas na construção de páginas web:
-                    headings, parágrafos, links, imagens, listas, tabelas e muito mais. Ao final, você saberá
-                    estruturar qualquer página de forma semântica e acessível.
+                <?php if (!empty($aula['descricao'])): ?>
+                <div class="bg-gray-50 rounded-xl p-5 mb-6 text-sm text-gray-600 leading-relaxed border border-gray-100">
+                    <?php echo nl2br($aula['descricao']); ?>
                 </div>
+                <?php endif; ?>
 
-                <!-- AÇÕES -->
                 <div class="flex items-center gap-3 flex-wrap">
-                    <a href="curso.php" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-gray-200 transition">
-                        ← Aula Anterior
-                    </a>
+                    
+                    <?php if ($id_anterior): ?>
+                        <a href="aula.php?id=<?php echo $id_anterior; ?>" class="flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-gray-200 transition">
+                            ← Aula Anterior
+                        </a>
+                    <?php else: ?>
+                        <a href="curso.php?id=<?php echo $curso_id; ?>" class="flex items-center gap-1.5 bg-gray-100 text-gray-400 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-gray-200 transition">
+                            ← Voltar ao Curso
+                        </a>
+                    <?php endif; ?>
 
-                    <!-- MARCAR COMO CONCLUÍDA -->
-                    <form action="aula.php" method="post" class="inline">
-                        <button type="submit"
-                            class="flex items-center gap-1.5 bg-senai-green text-white text-sm font-bold px-6 py-2.5 rounded-lg hover:bg-green-600 transition shadow">
-                            ✓ Marcar como Concluída
-                        </button>
-                    </form>
 
-                    <a href="curso.php" class="flex items-center gap-1.5 bg-senai-blue text-white text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-senai-blue-dark transition ml-auto">
-                        Próxima Aula →
-                    </a>
-                </div>
+                       <?php if ($ja_concluiu): ?>        
+                        <span class="flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 text-sm font-bold px-6 py-2.5 rounded-lg cursor-default shadow-sm">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                            Aula Concluída
+                        </span>
 
-                <!-- SE JÁ CONCLUÍDA (estado alternativo) -->
-                <div class="mt-5 bg-green-50 border border-green-300 rounded-xl p-4 flex items-center gap-3 hidden">
-                    <div class="w-10 h-10 bg-senai-green rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white font-bold">✓</span>
-                    </div>
-                    <div>
-                        <p class="font-bold text-green-800 text-sm">Aula concluída!</p>
-                        <p class="text-xs text-green-700">Concluída em 01/03/2025 às 14:32. Continue para a próxima aula.</p>
-                    </div>
-                    <a href="curso.php" class="ml-auto bg-senai-green text-white text-xs font-bold px-4 py-2 rounded-lg">Próxima Aula →</a>
-                </div>
+                    <?php else: ?>
+                        
+                        <form action="" method="post" class="inline">
+                            <input type="hidden" name="marcar_concluida" value="1">
+                            
+                            <button type="submit" class="flex items-center gap-2 bg-senai-green text-white text-sm font-bold px-6 py-2.5 rounded-lg hover:bg-green-700 hover:shadow-lg transform transition active:scale-95">
+                                <div class="w-4 h-4 rounded-full border-2 border-white opacity-80"></div>
+                                Marcar como Concluída
+                            </button>
+                        </form>
 
-                <!-- DIVIDER -->
-                <hr class="my-6 border-gray-200">
-
-                <!-- NAVEGAÇÃO DO MÓDULO -->
-                <div>
-                    <h3 class="font-bold text-gray-700 text-sm mb-3">Outras aulas deste módulo</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                            <span class="w-6 h-6 bg-senai-green rounded-full flex items-center justify-center text-white text-xs flex-shrink-0">✓</span>
-                            <span class="text-sm text-gray-600">O que é HTML?</span>
-                            <span class="ml-auto text-xs text-gray-400">8:20</span>
-                            <a href="aula.php" class="text-xs text-senai-blue underline">Rever</a>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                            <span class="w-6 h-6 bg-senai-green rounded-full flex items-center justify-center text-white text-xs flex-shrink-0">✓</span>
-                            <span class="text-sm text-gray-600">Estrutura básica de uma página</span>
-                            <span class="ml-auto text-xs text-gray-400">12:45</span>
-                            <a href="aula.php" class="text-xs text-senai-blue underline">Rever</a>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-blue-50 border border-senai-blue rounded-lg">
-                            <span class="w-6 h-6 bg-senai-blue rounded-full flex items-center justify-center text-white text-xs flex-shrink-0">▶</span>
-                            <span class="text-sm font-semibold text-gray-800">Tags Essenciais do HTML</span>
-                            <span class="ml-auto text-xs text-gray-400">15:10</span>
-                            <span class="text-xs text-senai-blue font-semibold">Atual</span>
-                        </div>
-                    </div>
+                    <?php endif; ?>
+                    <div class="flex-1"></div>
+                    
+                    <?php if ($id_proxima): ?>
+                        <a href="aula.php?id=<?php echo $id_proxima; ?>" class="flex items-center gap-1.5 bg-senai-blue text-white text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-senai-blue-dark transition ml-auto shadow-md">
+                            Próxima Aula →
+                        </a>
+                    <?php else: ?>
+                        <span class="flex items-center gap-1.5 bg-senai-green text-white text-sm font-bold px-6 py-2.5 rounded-lg shadow-md cursor-default ml-auto">
+                            🎉 Módulo Concluído!
+                        </span>
+                    <?php endif; ?>
                 </div>
 
             </div>

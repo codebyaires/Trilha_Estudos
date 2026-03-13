@@ -144,7 +144,7 @@ $res_modulos = mysqli_query($conexao, $sql_modulos);
 
         <div class="bg-white border-b border-gray-200 px-6 py-4 mt-6">
             <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> ›
+                <a href="cursos.php" class="hover:text-senai-blue">Cursos</a> 
                 <span class="text-gray-700 font-semibold"><?php echo $editando ? 'Editar Aula' : 'Nova Aula'; ?></span>
             </div>
             <h1 class="text-xl font-extrabold text-gray-800"><?php echo $editando ? 'Editar Aula' : 'Nova Aula'; ?></h1>
