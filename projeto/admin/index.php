@@ -61,7 +61,8 @@ $res_ultimos_cursos = mysqli_query($conexao, $sql_ultimos_cursos);
                 <div class="w-8 h-8 bg-senai-blue rounded-full flex items-center justify-center text-white text-xs font-bold">A</div>
                 <div>
                     <p class="text-white text-xs font-semibold">Administrador</p>
-                    <p class="text-gray-500 text-xs">admin@ead.com</p>
+                    <p class="text-gray-500 text-xs"><?php echo $dados_usuario['email']; ?></p>
+                    
                 </div>
             </div>
         </div>
