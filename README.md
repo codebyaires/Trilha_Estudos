@@ -16,15 +16,6 @@ Uma plataforma LMS (Learning Management System) desenvolvida do zero para oferec
 * **Banco de Dados:** MySQL (Arquitetura relacional com tabelas de usuários, cursos, módulos, aulas e histórico de conclusão)
 * **Estilização:** HTML5 e Tailwind CSS (via CDN)
 
-## 🗺️ Roadmap (Próximos Passos)
-
-O sistema está em constante evolução para se tornar um produto SaaS completo. As próximas implementações incluem:
-
-- [ ] Lógica de auto-conclusão usando a YouTube Iframe API (aula marcada como concluída assim que o vídeo acaba).
-- [ ] Sistema de Autenticação com o Google (Google Auth).
-- [ ] Verificação de segurança de dois fatores via E-mail (PHPMailer) com envio de código de confirmação.
-- [ ] Deploy completo da aplicação web em um servidor/VPS.
-
 ## 💻 Como Rodar o Projeto Localmente
 
 1. Clone este repositório na sua máquina:
