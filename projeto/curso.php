@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "includes/conexao.php";
-require_once "includes/logado.php";
+// require_once "includes/logado.php";
 
 $usuario_id = $_SESSION["usuario_id"];
 
