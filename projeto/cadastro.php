@@ -13,6 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST["email"] ?? "");
     $senha = $_POST["senha"] ?? "";
     $senha_confirma = $_POST["senha_confirma"] ?? "";
+    $cep = $_POST['cep'] ?? "";
 
     // Validações
     if (empty($nome) || empty($email) || empty($senha)) {
@@ -138,6 +139,67 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
+                            <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Cep *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">📍​</span>
+                                <input
+                                    id="cep"
+                                    name="cep"
+                                    type="number"
+                                    required
+                                    placeholder="88001300"
+                                    class="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-senai-green focus:border-transparent"
+                                >
+                            </div>
+                        </div>
+
+                                                    <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Rua *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
+                                <input
+                                    name="rua"
+                                    type="text"
+                                    required
+                                    placeholder="Rua Imigrantes Brito"
+                                    class="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-senai-green focus:border-transparent"
+                                    id="rua"
+                                >
+                            </div>
+                        </div>
+
+                                                    <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Bairro *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
+                                <input
+                                    name="bairro"
+                                    type="text"
+                                    required
+                                    placeholder="Centro"
+                                    class="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-senai-green focus:border-transparent"
+                                    id="bairro"
+                                >
+                            </div>
+                        </div>
+
+                            <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">UF *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
+                                <input
+                                    name="uf"
+                                    type="text"
+                                    required
+                                    placeholder="SC"
+                                    class="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-senai-green focus:border-transparent"
+                                    id="uf"
+                                >
+                            </div>
+                        </div>
+
+
                         <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Senha * <span class="text-gray-400 font-normal">(mínimo 6 caracteres)</span></label>
                             <div class="relative">
@@ -188,11 +250,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </p>
 
         </div>
+
     </main>
 
     <footer class="bg-senai-blue text-blue-200 text-center text-xs py-3">
         SENAI — Sistema EAD &nbsp;|&nbsp; Todos os direitos reservados
     </footer>
 
+    <script>
+        const campoCep = document.getElementById("cep");
+        campoCep.addEventListener("blur", function (){
+
+        console.log("O evento blur funcionou!");
+
+        });
+
+    </script>
 </body>
 </html>
