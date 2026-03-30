@@ -154,7 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                                                    <div class="mb-4">
+                        <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Rua *</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
@@ -169,7 +169,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                                                    <div class="mb-4">
+                            <div class="mb-4">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Número: *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
+                                <input
+                                    name="numero"
+                                    type="number"
+                                    required
+                                    placeholder="215"
+                                    class="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-senai-green focus:border-transparent"
+                                    id="rua"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Bairro *</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
@@ -184,7 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                            <div class="mb-4">
+                        <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">UF *</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">-</span>
@@ -257,14 +272,57 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         SENAI — Sistema EAD &nbsp;|&nbsp; Todos os direitos reservados
     </footer>
 
-    <script>
+ <script>
+        // 1. CAPTURANDO O ELEMENTO
+        // Procura no documento HTML o campo que tem o id="cep" e guarda uma referência dele na constante 'campoCep'.
         const campoCep = document.getElementById("cep");
-        campoCep.addEventListener("blur", function (){
+        
+        // 2. CRIANDO O GATILHO (OUVINTE DE EVENTOS)
+        // Adicionei um ouvinte no campo do CEP. O evento "blur" ocorre quando o usuário tira o foco do campo (clica fora).
+        // Quando isso acontecer, a função anônima a seguir será executada.
+        campoCep.addEventListener("blur", function () {
+            
+            // 3. VALIDAÇÃO BÁSICA
+            // Verifica se a quantidade de caracteres (length) digitada no campo (value) é diferente (!==) de 8.
+            if (campoCep.value.length !== 8) {
+                // Se for diferente de 8, exibe um alerta na tela do usuário.
+                alert("Quantidade de números inválida");
+                return;
+            }
 
-        console.log("O evento blur funcionou!");
-
-        });
-
+            // 4. PREPARANDO O ENDEREÇO
+            // Cria a constante 'url' juntando o link padrão da API com o valor exato que o usuário digitou no campo.
+            const url = "https://viacep.com.br/ws/" + campoCep.value + "/json/";
+            
+            // 5. BUSCANDO NA INTERNET
+            // O comando fetch() vai até a URL que montei e faz a requisição dos dados.
+            fetch(url)
+                // APÓS o fetch buscar os dados, ENTÃO ele traz uma resposta bruta da rede.
+                .then(function(resposta) {
+                    // O '.json()' pega essa resposta bruta e a traduz para o formato de objeto que o JavaScript consegue ler perfeitamente.
+                    // O 'return' entrega esse pacote traduzido para o próximo bloco continuar o trabalho.
+                    return resposta.json();
+                })
+    
+                // O segundo '.then' recebe o pacote já traduzido. Eu apelidei esse pacote de 'dados'.
+                .then(function(dados) {
+                    
+                    // 6. TRATANDO ERRO DA API (CEP INEXISTENTE)
+                    // A API do ViaCEP devolve 'dados.erro = true' se o CEP digitado for válido (tiver 8 números), mas não existir no mapa.
+                    if (dados.erro) {
+                        alert("CEP não encontrado.");
+                        return; 
+                    }
+                    
+                    // 7. INJETANDO OS DADOS NO HTML
+                    // Procuram os outros campos do formulário pelos seus respectivos IDs.
+                    // Em seguida, foi denifido que o valor (.value) deles será igual à informação correspondente que veio dentro dos 'dados' da API.
+                    document.getElementById("rua").value = dados.logradouro;
+                    document.getElementById("bairro").value = dados.bairro;
+                    document.getElementById("uf").value = dados.uf;
+                });
+                
+        }); // Fecha a função e encerra o addEventListener
     </script>
 </body>
 </html>
